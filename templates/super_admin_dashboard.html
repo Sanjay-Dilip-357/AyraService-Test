@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - AYRA Services</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* ══════════════════════════════════════════════
+           SIDEBAR LAYOUT
+        ══════════════════════════════════════════════ */
+        .app-layout {
+            display: flex;
+            min-height: calc(100vh - 60px);
+        }
+
+        .left-sidebar {
+            width: 220px;
+            min-width: 220px;
+            background: var(--surface, #1a1f2e);
+            border-right: 1px solid var(--rule, rgba(255, 255, 255, 0.08));
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            transition: width 0.25s ease, min-width 0.25s ease;
+            z-index: 100;
+        }
+
+        .left-sidebar.collapsed {
+            width: 58px;
+            min-width: 58px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 0.35rem 1rem 0.65rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            margin-bottom: 0.4rem;
+        }
+
+        .sidebar-header-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.35);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        .left-sidebar.collapsed .sidebar-header-label {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-toggle-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.6rem 1rem;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .sidebar-nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+            border-left-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-nav-link.active {
+            color: #fff;
+            background: rgba(79, 172, 254, 0.14);
+            border-left-color: #4facfe;
+        }
+
+        .sidebar-nav-link .sidebar-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-nav-link .sidebar-label {
+            transition: opacity 0.2s;
+        }
+
+        .left-sidebar.collapsed .sidebar-nav-link .sidebar-label {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-x: hidden;
+            min-width: 0;
+        }
+
+        .service-panel {
+            display: none;
+        }
+
+        .service-panel.active {
+            display: block;
+        }
+
+        /* ── Coming Soon ── */
+        .empty-service-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .empty-service-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-service-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ink, #e2e8f0);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-service-subtitle {
+            font-size: 0.925rem;
+            color: var(--ink-muted, #94a3b8);
+            max-width: 380px;
+            line-height: 1.6;
+        }
+
+        .coming-soon-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(79, 172, 254, 0.12);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            color: #4facfe;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.35rem 0.875rem;
+            border-radius: 999px;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .left-sidebar {
+                width: 58px;
+                min-width: 58px;
+            }
+
+            .left-sidebar .sidebar-label,
+            .left-sidebar .sidebar-header-label {
+                opacity: 0;
+                width: 0;
+                overflow: hidden;
+            }
+
+            .sidebar-toggle-btn {
+                display: none;
+            }
+        }
+
+        /* ══════════════════════════════════════════════
+           e-STAMP STYLES (Simple Black & White)
+        ══════════════════════════════════════════════ */
+        .estamp-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--rule, rgba(255, 255, 255, 0.1));
+        }
+
+        .estamp-tab-btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--ink-muted, #94a3b8);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .estamp-tab-btn:hover {
+            color: var(--ink, #e2e8f0);
+        }
+
+        .estamp-tab-btn.active {
+            color: #4facfe;
+            border-bottom-color: #4facfe;
+        }
+
+        .estamp-tab-panel {
+            display: none;
+        }
+
+        .estamp-tab-panel.active {
+            display: block;
+        }
+
+        .es-form-container {
+            max-width: 780px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 2rem;
+        }
+
+        .es-form-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #111;
+            margin: 0 0 0.25rem;
+        }
+
+        .es-form-subtitle {
+            font-size: 0.8rem;
+            color: #888;
+            margin: 0 0 1.5rem;
+        }
+
+        .es-section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #999;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid #eee;
+            margin: 1.5rem 0 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .es-section-label:first-of-type {
+            margin-top: 0;
+        }
+
+        .es-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem 1.25rem;
+        }
+
+        .es-form-grid .fg {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .es-form-grid .fg.full {
+            grid-column: 1 / -1;
+        }
+
+        .es-form-grid .fg label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .es-form-grid .fg input {
+            padding: 0.45rem 0.65rem;
+            font-size: 0.85rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            color: #222;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .es-form-grid .fg input:focus {
+            border-color: #333;
+        }
+
+        .es-form-grid .fg input::placeholder {
+            color: #bbb;
+        }
+
+        .es-btn-row {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .es-btn {
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.15s;
+        }
+
+        .es-btn-primary {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+
+        .es-btn-primary:hover {
+            background: #333;
+        }
+
+        .es-btn-secondary {
+            background: #fff;
+            color: #333;
+        }
+
+        .es-btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        @media (max-width: 600px) {
+            .es-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .es-form-container {
+                padding: 1.25rem;
+            }
+        }
+
+        /* ── Certificate Preview ── */
+        .a4-sheet {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .bg-text {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            opacity: .1;
+            font-size: 11px;
+            color: #000;
+            line-height: 1.6em;
+            white-space: pre;
+            font-weight: bold;
+            padding: 12px;
+            font-family: Arial, sans-serif;
+        }
+
+        .content-box {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            z-index: 2;
+            font-size: 14px;
+            color: #000;
+            font-family: Arial, sans-serif;
+            background: url("{{ url_for('static', filename='images/bond_bg.png') }}") no-repeat center center;
+            background-size: cover;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        .cert-text {
+            position: absolute;
+            font-size: 13px;
+            color: #222325;
+            line-height: 1;
+            font-family: Arial, sans-serif;
+        }
+
+        .outer-circle {
+            width: 111px;
+            height: 100px;
+            border-radius: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            position: absolute;
+            top: 175mm;
+            left: 158mm;
+        }
+
+        .inner-circle {
+            width: 140px;
+            height: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .outer-circle svg {
+            width: 150px;
+            height: 150px;
+        }
+
+        .textArcTop,
+        .textArcMiddle,
+        .textArcBottom {
+            font-size: 12px;
+            fill: #d5d1d1;
+            font-weight: bold;
+            letter-spacing: .5px;
+            dominant-baseline: middle;
+        }
+
+        .centerText {
+            font-size: 17px;
+            fill: #d5d1d1;
+            font-weight: bold;
+        }
+
+        .crosshair {
+            position: absolute;
+            width: 30mm;
+            height: 30mm;
+            z-index: 5;
+        }
+
+        #estampCertTemplate {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+
+        /* ══════════════════════════════════════════════
+           DB CONSOLE STYLES
+        ══════════════════════════════════════════════ */
+        .db-console-wrapper {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .db-console-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .db-sidebar {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        .db-sidebar h6 {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.375rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .db-table-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.375rem 0.625rem;
+            margin-bottom: 0.25rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 0.75rem;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .db-table-item:hover {
+            background: #1f2937;
+            color: #fff;
+            border-color: #1f2937;
+        }
+
+        .db-table-item .row-count {
+            font-size: 0.625rem;
+            padding: 0.1rem 0.4rem;
+            background: #f3f4f6;
+            border-radius: 999px;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        .db-table-item:hover .row-count {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .db-snippet {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            padding: 0.375rem 0.625rem;
+            margin-bottom: 0.25rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            gap: 0.375rem;
+        }
+
+        .db-snippet:hover {
+            background: #1f2937;
+            color: #fff;
+            border-color: #1f2937;
+            transform: translateX(2px);
+        }
+
+        .db-snippet i {
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        .db-snippet:hover i {
+            color: #fff;
+        }
+
+        .db-console-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 0;
+        }
+
+        .db-console-warning {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.625rem;
+            padding: 0.625rem 1rem;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            color: #92400e;
+            font-size: 0.8125rem;
+        }
+
+        .db-console-warning i {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .db-editor {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .db-editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.625rem 1rem;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .db-prompt {
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 0.75rem;
+            color: #8b949e;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .db-prompt::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3fb950;
+            box-shadow: 0 0 6px rgba(63, 185, 80, 0.6);
+            flex-shrink: 0;
+        }
+
+        .db-prompt-path {
+            color: #e6edf3;
+            font-weight: 600;
+        }
+
+        .db-shortcut-hint {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6875rem;
+            color: #484f58;
+        }
+
+        .db-shortcut-hint kbd {
+            background: #21262d;
+            color: #e6edf3;
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            border: 1px solid #30363d;
+        }
+
+        .db-query-input {
+            width: 100%;
+            min-height: 140px;
+            background: #0d1117;
+            color: #e6edf3;
+            border: none;
+            outline: none;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            resize: vertical;
+            tab-size: 2;
+            display: block;
+        }
+
+        .db-query-input::placeholder {
+            color: #484f58;
+        }
+
+        .db-query-input::selection {
+            background: #264f78;
+        }
+
+        .db-editor-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #161b22;
+            border-top: 1px solid #30363d;
+            flex-wrap: wrap;
+        }
+
+        .db-mode-select {
+            background: #21262d;
+            color: #e6edf3;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 0.3125rem 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .db-mode-select:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        .db-action-group {
+            display: flex;
+            gap: 0.375rem;
+            flex-wrap: wrap;
+        }
+
+        .db-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            line-height: 1.4;
+        }
+
+        .db-btn-run {
+            background: #238636;
+            color: #fff;
+            border-color: #238636;
+        }
+
+        .db-btn-run:hover {
+            background: #2ea043;
+        }
+
+        .db-btn-run:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .db-btn-ghost {
+            background: transparent;
+            color: #8b949e;
+            border-color: #30363d;
+        }
+
+        .db-btn-ghost:hover {
+            background: #21262d;
+            color: #e6edf3;
+        }
+
+        .db-btn-ghost:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .db-results {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: visible;
+            min-height: 120px;
+        }
+
+        .db-results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e5e7eb;
+            border-radius: 12px 12px 0 0;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+        }
+
+        .db-results-title {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .db-results-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            font-size: 0.6875rem;
+            color: #6b7280;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .meta-chip {
+            padding: 0.125rem 0.5rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .meta-chip.running {
+            border-color: #93c5fd;
+            color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .meta-chip.ok {
+            border-color: #bbf7d0;
+            color: #15803d;
+            background: #f0fdf4;
+        }
+
+        .meta-chip.err {
+            border-color: #fecaca;
+            color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .db-results-body {
+            max-height: 520px;
+            overflow-x: auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #fff;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .db-results-body::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .db-results-body::-webkit-scrollbar-track {
+            background: #f9fafb;
+        }
+
+        .db-results-body::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+
+        .db-results-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 0.8125rem;
+        }
+
+        .db-results-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+
+        .db-results-table thead th {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            border-bottom: 2px solid #374151;
+            border-right: 1px solid #374151;
+        }
+
+        .db-results-table thead th:last-child {
+            border-right: none;
+        }
+
+        .db-results-table thead th.row-num-header {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background: #111827;
+            width: 48px;
+            min-width: 48px;
+            text-align: center;
+            color: #6b7280;
+            border-right: 2px solid #374151;
+        }
+
+        .db-results-table tbody tr:nth-child(odd) {
+            background: #fff;
+        }
+
+        .db-results-table tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        .db-results-table tbody tr:hover td {
+            background: #f0f9ff;
+        }
+
+        .db-results-table tbody tr:hover .row-num {
+            background: #e8f4fd;
+        }
+
+        .db-results-table tbody td {
+            padding: 0.4375rem 0.75rem;
+            color: #374151;
+            vertical-align: middle;
+            white-space: nowrap;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-bottom: 1px solid #f3f4f6;
+            border-right: 1px solid #f3f4f6;
+        }
+
+        .db-results-table tbody td:last-child {
+            border-right: none;
+        }
+
+        .db-results-table tbody td:hover {
+            white-space: normal;
+            overflow: visible;
+            max-width: none;
+            background: #fffbeb;
+            position: relative;
+            z-index: 1;
+        }
+
+        .db-results-table .row-num {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background: #f9fafb;
+            border-right: 2px solid #e5e7eb;
+            color: #9ca3af;
+            font-size: 0.6875rem;
+            text-align: center;
+            width: 48px;
+            min-width: 48px;
+            font-weight: 600;
+        }
+
+        .db-results-table .cell-null {
+            color: #d1d5db;
+            font-style: italic;
+        }
+
+        .db-results-table .cell-bool-true {
+            color: #059669;
+            font-weight: 700;
+        }
+
+        .db-results-table .cell-bool-false {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .db-results-table .cell-number {
+            color: #1d4ed8;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .db-results-table .cell-datetime {
+            color: #7c3aed;
+            font-size: 0.75rem;
+        }
+
+        .db-results-table .cell-uuid {
+            color: #9ca3af;
+            font-size: 0.6875rem;
+        }
+
+        .db-results-table .cell-json {
+            display: inline-block;
+            background: #f3f4f6;
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            color: #6b7280;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .db-results-table .cell-password {
+            color: #d1d5db;
+            font-size: 0.6875rem;
+            letter-spacing: 0.12em;
+        }
+
+        .db-results-empty {
+            padding: 3rem 2rem;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        .db-results-empty i {
+            font-size: 2.5rem;
+            display: block;
+            color: #e5e7eb;
+            margin-bottom: 0.75rem;
+        }
+
+        .db-results-message {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .db-results-message.success {
+            color: #15803d;
+            background: #f0fdf4;
+            border-bottom: 2px solid #bbf7d0;
+        }
+
+        .db-results-message.error {
+            color: #dc2626;
+            background: #fef2f2;
+            border-bottom: 2px solid #fecaca;
+        }
+
+        .db-results-message i {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .db-results-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.375rem 1rem;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.6875rem;
+            color: #9ca3af;
+            font-family: 'JetBrains Mono', monospace;
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+        }
+
+        .db-history {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .db-history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .db-history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .db-history-item {
+            display: flex;
+            align-items: center;
+            padding: 0.375rem 1rem;
+            border-bottom: 1px solid #f9fafb;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #4b5563;
+            cursor: pointer;
+            transition: background 0.1s ease;
+            gap: 0.5rem;
+        }
+
+        .db-history-item:hover {
+            background: #f0f9ff;
+        }
+
+        .db-history-item .history-query {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .db-history-item .history-time {
+            color: #9ca3af;
+            font-size: 0.625rem;
+            flex-shrink: 0;
+        }
+
+        .history-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .history-status-dot.ok {
+            background: #22c55e;
+        }
+
+        .history-status-dot.err {
+            background: #ef4444;
+        }
+
+        .db-history-empty {
+            padding: 1.5rem;
+            text-align: center;
+            color: #d1d5db;
+            font-size: 0.8125rem;
+        }
+
+        .table-sort-btn {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            color: inherit;
+            font: inherit;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+        }
+
+        .table-sort-btn:hover {
+            color: #1d4ed8;
+        }
+
+        .table-sort-btn .sort-arrow {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            line-height: 1;
+        }
+
+        .table-sort-btn.active {
+            color: #1d4ed8;
+        }
+
+        .table-sort-btn.active .sort-arrow {
+            color: #1d4ed8;
+        }
+
+        @media print {
+            .no-print,
+            .left-sidebar,
+            .admin-navbar,
+            .footer {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .app-layout {
+                display: block;
+            }
+
+            .a4-sheet {
+                box-shadow: none;
+            }
+
+            .content-box,
+            .a4-sheet {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Super Admin Navbar -->
+    <nav class="navbar admin-navbar navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="/">
+                <div class="brand-logo"><i class="bi bi-shield-shaded"></i></div>
+                <div class="d-flex align-items-baseline">
+                    <span class="brand-name">AYRA</span>
+                    <span class="ms-2">Super Admin</span>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto me-3">
+                    <li class="nav-item d-flex align-items-center">
+                        <span class="admin-badge">Super Admin</span>
+                    </li>
+                </ul>
+                <span class="time-display" id="navTimeDisplay"><i class="bi bi-clock"></i> <span id="navTime"></span></span>
+                <div class="dropdown user-dropdown">
+                    <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar">{{ admin_name[0].upper() if admin_name else 'S' }}</div>
+                        <span class="d-none d-md-inline">{{ admin_name or 'Super Admin' }}</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header">
+                            <strong>{{ admin_name }}</strong>
+                            <span class="text-muted">Super Administrator</span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== APP LAYOUT ==================== -->
+    <div class="app-layout">
+
+        <!-- Sidebar -->
+        <aside class="left-sidebar" id="leftSidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-header-label">Services</span>
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+                    <i class="bi bi-layout-sidebar-reverse" id="sidebarToggleIcon"></i>
+                </button>
+            </div>
+            <ul class="sidebar-nav">
+                <li>
+                    <div class="sidebar-nav-link" id="nav-aadhaar" onclick="activateService('aadhaar')">
+                        <i class="bi bi-credit-card-2-front sidebar-icon"></i>
+                        <span class="sidebar-label">Aadhaar Services</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="sidebar-nav-link" id="nav-govt" onclick="activateService('govt')">
+                        <i class="bi bi-building sidebar-icon"></i>
+                        <span class="sidebar-label">Govt Services</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="sidebar-nav-link active" id="nav-namechange" onclick="activateService('namechange')">
+                        <i class="bi bi-person-badge sidebar-icon"></i>
+                        <span class="sidebar-label">Name Change</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="sidebar-nav-link" id="nav-estamp" onclick="activateService('estamp')">
+                        <i class="bi bi-postage sidebar-icon"></i>
+                        <span class="sidebar-label">e-Stamp</span>
+                    </div>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Content Area -->
+        <div class="content-area">
+
+            <!-- ═══════ Aadhaar ═══════ -->
+            <div class="service-panel" id="panel-aadhaar">
+                <div class="container-fluid px-4 py-4">
+                    <div class="empty-service-screen">
+                        <div class="empty-service-icon" style="background: linear-gradient(135deg, rgba(79,172,254,0.15), rgba(0,242,254,0.15)); border: 2px solid rgba(79,172,254,0.25);">
+                            <i class="bi bi-credit-card-2-front" style="color: #4facfe;"></i>
+                        </div>
+                        <div class="empty-service-title">Aadhaar Services</div>
+                        <div class="empty-service-subtitle">Aadhaar-related services will be available here soon.</div>
+                        <span class="coming-soon-badge"><i class="bi bi-clock-history"></i> Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Govt ═══════ -->
+            <div class="service-panel" id="panel-govt">
+                <div class="container-fluid px-4 py-4">
+                    <div class="empty-service-screen">
+                        <div class="empty-service-icon" style="background: linear-gradient(135deg, rgba(17,153,142,0.15), rgba(56,239,125,0.15)); border: 2px solid rgba(17,153,142,0.25);">
+                            <i class="bi bi-building" style="color: #11998e;"></i>
+                        </div>
+                        <div class="empty-service-title">Government Services</div>
+                        <div class="empty-service-subtitle">Government-related services will be available here.</div>
+                        <span class="coming-soon-badge"><i class="bi bi-clock-history"></i> Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Name Change (Main Dashboard) ═══════ -->
+            <div class="service-panel active" id="panel-namechange">
+                <main class="main-content">
+                    <div class="container-fluid px-4 py-4">
+
+                        <!-- Welcome -->
+                        <section class="welcome-section fade-in mb-4">
+                            <div class="row align-items-center g-3">
+                                <div class="col-md-8">
+                                    <h1 class="welcome-title">Super Admin Dashboard</h1>
+                                    <p class="welcome-subtitle">Manage all administrators, users, and documents</p>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <span id="currentDateTime"></span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Stats -->
+                        <section class="row g-3 mb-4">
+                            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon" style="background: var(--ink);"><i class="bi bi-shield-shaded"></i></div>
+                                    <div>
+                                        <div class="compact-stats-value" id="totalSuperAdmins">1</div>
+                                        <div class="compact-stats-label">Super Admins</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon" style="background: var(--ink-soft);"><i class="bi bi-shield-lock"></i></div>
+                                    <div>
+                                        <div class="compact-stats-value" id="totalAdmins">0</div>
+                                        <div class="compact-stats-label">Admins</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon" style="background: var(--ink-muted);"><i class="bi bi-people"></i></div>
+                                    <div>
+                                        <div class="compact-stats-value" id="totalUsers">0</div>
+                                        <div class="compact-stats-label">Users</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon" style="background: #1d4ed8;"><i class="bi bi-files"></i></div>
+                                    <div>
+                                        <div class="compact-stats-value" id="totalDocuments">0</div>
+                                        <div class="compact-stats-label">Documents</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon" style="background: #d97706;"><i class="bi bi-hourglass-split"></i></div>
+                                    <div>
+                                        <div class="compact-stats-value" id="pendingDocs">0</div>
+                                        <div class="compact-stats-label">Pending</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon" style="background: #16a34a;"><i class="bi bi-file-earmark-check"></i></div>
+                                    <div>
+                                        <div class="compact-stats-value" id="generatedDocs">0</div>
+                                        <div class="compact-stats-label">Generated</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Tabs -->
+                        <section class="dashboard-tabs-container">
+                            <ul class="nav nav-tabs dashboard-tabs" id="superAdminTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                                        <i class="bi bi-graph-up"></i> Overview
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins" type="button" role="tab">
+                                        <i class="bi bi-shield-lock"></i> Admins
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                                        <i class="bi bi-people"></i> Users
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
+                                        <i class="bi bi-files"></i> Documents
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="dbconsole-tab" data-bs-toggle="tab" data-bs-target="#dbconsole" type="button" role="tab">
+                                        <i class="bi bi-terminal"></i> DB Console
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="superAdminTabsContent">
+
+                                <!-- Overview Tab -->
+                                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <h5 class="section-title"><i class="bi bi-bar-chart-fill"></i> System Overview</h5>
+                                        <div class="row g-4">
+                                            <div class="col-lg-6">
+                                                <div class="card h-100">
+                                                    <div class="card-header"><i class="bi bi-shield-lock"></i> Admin Activity</div>
+                                                    <div class="card-body p-0">
+                                                        <div class="table-responsive">
+                                                            <table class="data-table">
+                                                                <thead><tr><th>Admin</th><th>Status</th><th>Last Login</th></tr></thead>
+                                                                <tbody id="adminActivityBody"></tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="card h-100">
+                                                    <div class="card-header"><i class="bi bi-people"></i> Top Users by Documents</div>
+                                                    <div class="card-body p-0">
+                                                        <div class="table-responsive">
+                                                            <table class="data-table">
+                                                                <thead><tr><th>User</th><th>Total Docs</th><th>Generated</th></tr></thead>
+                                                                <tbody id="userActivityBody"></tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Admins Tab -->
+                                <div class="tab-pane fade" id="admins" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                                            <h5 class="section-title mb-0"><i class="bi bi-shield-lock"></i> Admin Management</h5>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <a href="/setup-admin" class="btn btn-secondary"><i class="bi bi-person-plus"></i> Add Admin</a>
+                                                <a href="/create-super-admin" class="btn btn-primary"><i class="bi bi-shield-plus"></i> Add Super Admin</a>
+                                            </div>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="data-table" id="adminsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th><button type="button" class="table-sort-btn" data-table="admins" data-field="name" onclick="setTableSort('admins','name')">Name <span class="sort-arrow">↕</span></button></th>
+                                                        <th><button type="button" class="table-sort-btn" data-table="admins" data-field="email" onclick="setTableSort('admins','email')">Email <span class="sort-arrow">↕</span></button></th>
+                                                        <th>Phone</th>
+                                                        <th>Status</th>
+                                                        <th><button type="button" class="table-sort-btn" data-table="admins" data-field="created_at" onclick="setTableSort('admins','created_at')">Created <span class="sort-arrow">↕</span></button></th>
+                                                        <th><button type="button" class="table-sort-btn" data-table="admins" data-field="last_login" onclick="setTableSort('admins','last_login')">Last Login <span class="sort-arrow">↕</span></button></th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="adminsTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="empty-state d-none" id="adminsEmptyState">
+                                            <i class="bi bi-shield-lock"></i><h5>No admins found</h5><p>Create your first admin to get started</p>
+                                            <a href="/setup-admin" class="btn btn-primary mt-3"><i class="bi bi-person-plus"></i> Add Admin</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Users Tab -->
+                                <div class="tab-pane fade" id="users" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                                            <h5 class="section-title mb-0"><i class="bi bi-people"></i> User Management</h5>
+                                            <button type="button" class="btn btn-primary" onclick="showAddUserModal()"><i class="bi bi-person-plus"></i> Add User</button>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="data-table" id="usersTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th><button type="button" class="table-sort-btn" data-table="users" data-field="name" onclick="setTableSort('users','name')">Name <span class="sort-arrow">↕</span></button></th>
+                                                        <th>Email</th><th>Phone</th><th>Documents</th><th>Status</th>
+                                                        <th><button type="button" class="table-sort-btn" data-table="users" data-field="last_login" onclick="setTableSort('users','last_login')">Last Login <span class="sort-arrow">↕</span></button></th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="usersTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="empty-state d-none" id="usersEmptyState"><i class="bi bi-people"></i><h5>No users found</h5><p>Add users to get started</p></div>
+                                    </div>
+                                </div>
+
+                                <!-- Documents Tab -->
+                                <div class="tab-pane fade" id="documents" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                                            <h5 class="section-title mb-0"><i class="bi bi-files"></i> All Documents</h5>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <button type="button" class="btn btn-sm btn-primary" onclick="filterDocs('all')">All</button>
+                                                <button type="button" class="btn btn-sm btn-secondary" onclick="filterDocs('draft')">Drafts</button>
+                                                <button type="button" class="btn btn-sm btn-secondary" onclick="filterDocs('pending')">Pending</button>
+                                                <button type="button" class="btn btn-sm btn-secondary" onclick="filterDocs('approved')">Approved</button>
+                                                <button type="button" class="btn btn-sm btn-secondary" onclick="filterDocs('generated')">Generated</button>
+                                            </div>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="data-table" id="docsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th><button type="button" class="table-sort-btn" data-table="docs" data-field="user_name" onclick="setTableSort('docs','user_name')">User <span class="sort-arrow">↕</span></button></th>
+                                                        <th><button type="button" class="table-sort-btn" data-table="docs" data-field="old_name" onclick="setTableSort('docs','old_name')">Old Name <span class="sort-arrow">↕</span></button></th>
+                                                        <th>Template</th><th>Status</th>
+                                                        <th><button type="button" class="table-sort-btn" data-table="docs" data-field="modified_at" onclick="setTableSort('docs','modified_at')">Modified <span class="sort-arrow">↕</span></button></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="docsTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="empty-state d-none" id="docsEmptyState"><i class="bi bi-files"></i><h5>No documents found</h5></div>
+                                    </div>
+                                </div>
+
+                                <!-- DB Console Tab -->
+                                <div class="tab-pane fade" id="dbconsole" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                                            <h5 class="section-title mb-0"><i class="bi bi-terminal"></i> Database Console</h5>
+                                            <span class="label-caps"><i class="bi bi-hdd-network"></i> <span id="dbEngineName">connecting…</span></span>
+                                        </div>
+                                        <div class="db-console-warning mb-3">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                            <div><strong>Super Admin only.</strong> Queries run against the live database. Destructive statements require <em>Write</em> mode.</div>
+                                        </div>
+                                        <div class="db-console-wrapper">
+                                            <aside class="db-sidebar">
+                                                <h6><i class="bi bi-table"></i> Tables</h6>
+                                                <div id="dbTablesList">
+                                                    <div class="db-table-item" data-query="SELECT * FROM users ORDER BY created_at DESC LIMIT 50;"><span>users</span><span class="row-count" id="rc-users">—</span></div>
+                                                    <div class="db-table-item" data-query="SELECT * FROM drafts ORDER BY modified_at DESC LIMIT 50;"><span>drafts</span><span class="row-count" id="rc-drafts">—</span></div>
+                                                    <div class="db-table-item" data-query="SELECT * FROM phone_tracking ORDER BY id DESC LIMIT 50;"><span>phone_tracking</span><span class="row-count" id="rc-phone-tracking">—</span></div>
+                                                    <div class="db-table-item" data-query="SELECT * FROM estamps ORDER BY created_at DESC LIMIT 50;"><span>estamps</span><span class="row-count" id="rc-estamps">—</span></div>
+                                                    <div class="db-table-item" data-query="SELECT * FROM estamp_config ORDER BY id;"><span>estamp_config</span><span class="row-count" id="rc-estamp-config">—</span></div>
+                                                </div>
+                                                <h6 class="mt-4"><i class="bi bi-bookmark-star"></i> Snippets</h6>
+                                                <button type="button" class="db-snippet" data-query="SELECT role, COUNT(*) AS total FROM users GROUP BY role;"><i class="bi bi-people"></i>Users by role</button>
+                                                <button type="button" class="db-snippet" data-query="SELECT status, COUNT(*) AS total FROM drafts GROUP BY status;"><i class="bi bi-file-earmark-text"></i>Drafts by status</button>
+                                                <button type="button" class="db-snippet" data-query="SELECT id, name, email, role, is_active, last_login FROM users WHERE role IN ('admin','super_admin') ORDER BY role, name;"><i class="bi bi-shield-lock"></i>All admins</button>
+                                                <button type="button" class="db-snippet" data-query="SELECT u.name AS user_name, COUNT(d.id) AS total_docs FROM users u LEFT JOIN drafts d ON d.user_id=u.id WHERE u.role='user' GROUP BY u.id, u.name ORDER BY total_docs DESC LIMIT 10;"><i class="bi bi-trophy"></i>Top users by docs</button>
+                                                <button type="button" class="db-snippet" data-query="SELECT id, user_id, template_type, status, modified_at FROM drafts WHERE status='pending' ORDER BY modified_at DESC;"><i class="bi bi-hourglass-split"></i>Pending drafts</button>
+                                                <button type="button" class="db-snippet" data-query="SELECT id, purchased_by, cert_no, stamp_duty, created_at FROM estamps ORDER BY created_at DESC LIMIT 20;"><i class="bi bi-postage"></i>Recent e-Stamps</button>
+                                                <button type="button" class="db-snippet" data-query="SELECT key, value, updated_at FROM estamp_config;"><i class="bi bi-gear"></i>e-Stamp config</button>
+                                                <button type="button" class="db-snippet" data-query="SELECT COUNT(*) AS total_users, SUM(CASE WHEN is_active THEN 1 ELSE 0 END) AS active_users FROM users;"><i class="bi bi-bar-chart"></i>User totals</button>
+                                            </aside>
+                                            <div class="db-console-main">
+                                                <div class="db-editor">
+                                                    <div class="db-editor-header">
+                                                        <span class="db-prompt"><span>super_admin@ayra:</span><span class="db-prompt-path">~/db</span><span>$</span></span>
+                                                        <span class="db-shortcut-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run</span>
+                                                    </div>
+                                                    <textarea id="dbQueryInput" class="db-query-input" spellcheck="false" autocomplete="off" placeholder="-- Enter your SQL query&#10;SELECT * FROM users LIMIT 10;"></textarea>
+                                                    <div class="db-editor-footer">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <select id="dbModeSelect" class="db-mode-select"><option value="read" selected>READ ONLY</option><option value="write">WRITE (danger)</option></select>
+                                                            <select id="dbLimitSelect" class="db-mode-select"><option value="50">limit 50</option><option value="100" selected>limit 100</option><option value="500">limit 500</option><option value="0">no limit</option></select>
+                                                        </div>
+                                                        <div class="db-action-group">
+                                                            <button type="button" class="db-btn db-btn-ghost" id="dbFormatBtn"><i class="bi bi-magic"></i> Format</button>
+                                                            <button type="button" class="db-btn db-btn-ghost" id="dbClearBtn"><i class="bi bi-eraser"></i> Clear</button>
+                                                            <button type="button" class="db-btn db-btn-ghost" id="dbExportBtn" disabled><i class="bi bi-download"></i> CSV</button>
+                                                            <button type="button" class="db-btn db-btn-run" id="dbRunBtn"><i class="bi bi-play-fill"></i> Run</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="db-results">
+                                                    <div class="db-results-header">
+                                                        <span class="db-results-title"><i class="bi bi-card-list"></i> Result</span>
+                                                        <div class="db-results-meta">
+                                                            <span class="meta-chip" id="dbStatusChip">idle</span>
+                                                            <span id="dbRowCountChip">— rows</span>
+                                                            <span id="dbTimeChip">— ms</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="db-results-body" id="dbResultsBody">
+                                                        <div class="db-results-empty">
+                                                            <i class="bi bi-terminal"></i>
+                                                            <div>Run a query to see results here.</div>
+                                                            <small>Click a table or snippet to get started.</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="db-history">
+                                                    <div class="db-history-header">
+                                                        <span><i class="bi bi-clock-history"></i> History</span>
+                                                        <button type="button" class="db-btn db-btn-ghost" id="dbHistoryClearBtn" style="background:#fff;color:#6b7280;border-color:#e5e7eb;font-size:0.75rem;padding:0.25rem 0.5rem;"><i class="bi bi-trash"></i> Clear</button>
+                                                    </div>
+                                                    <div class="db-history-list" id="dbHistoryList">
+                                                        <div class="db-history-empty">No queries yet in this session.</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </section>
+                    </div>
+                </main>
+            </div>
+
+            <!-- ═══════ e-Stamp ═══════ -->
+            <div class="service-panel" id="panel-estamp">
+                <div class="container-fluid px-4 py-4">
+                    <div class="welcome-section mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h1 class="welcome-title"><i class="bi bi-postage me-2"></i>e-Stamp Certificate</h1>
+                                <p class="welcome-subtitle mb-0">Create, manage, and print e-Stamp bond certificates</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <span class="badge" style="background:rgba(233,69,96,0.15); color:#e94560; font-size:0.8rem; padding:0.5rem 1rem; border-radius:999px; font-weight:600;">
+                                    <i class="bi bi-stack me-1"></i><span id="estampRecordCount">0</span> Records
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="estamp-tabs no-print">
+                        <button class="estamp-tab-btn active" id="estampTabRecords" onclick="switchEstampTab('records')"><i class="bi bi-table"></i> Records</button>
+                        <button class="estamp-tab-btn" id="estampTabNew" onclick="switchEstampTab('new')"><i class="bi bi-plus-circle"></i> New Certificate</button>
+                    </div>
+
+                    <!-- Records -->
+                    <div class="estamp-tab-panel active" id="estampPanelRecords">
+                        <div class="tab-content-card" style="margin-top:0; border-top-left-radius:0;">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                <div class="input-group" style="max-width:300px;">
+                                    <span class="input-group-text" style="background:var(--rule-soft); border:1.5px solid var(--rule); border-right:none;">
+                                        <i class="bi bi-search" style="font-size:.8rem; color:var(--ink-muted);"></i></span>
+                                    <input type="text" class="form-control" id="estampSearchInput" placeholder="Search by name, cert no…" oninput="filterEstampRecords()" style="border-left:none; border:1.5px solid var(--rule); font-size:.85rem;">
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="switchEstampTab('new')" style="font-weight:600;"><i class="bi bi-plus-lg me-1"></i>New Certificate</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table data-table" id="estampRecordsTable">
+                                    <thead><tr><th style="width:40px;">#</th><th>Certificate No</th><th>Purchased By</th><th>Document</th><th>Amount</th><th>Date</th><th style="width:160px;">Actions</th></tr></thead>
+                                    <tbody id="estampRecordsBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="estampEmptyState">
+                                <i class="bi bi-postage" style="font-size:3rem; color:var(--ink-muted);"></i>
+                                <h5 style="margin-top:1rem;">No e-Stamp records yet</h5>
+                                <p style="color:var(--ink-muted);">Click "New Certificate" to create one</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Certificate -->
+                    <div class="estamp-tab-panel" id="estampPanelNew">
+                        <div class="tab-content-card" style="margin-top:0; border-top-left-radius:0;">
+                            <div class="es-form-container">
+                                <div class="es-form-title">e-Stamp Bond Certificate</div>
+                                <div class="es-form-subtitle">Fill in the details below to create a certificate.</div>
+                                <input type="hidden" id="estampEditId" value="">
+
+                                <div class="es-section-label"><i class="bi bi-file-earmark-lock"></i> Certificate Details</div>
+                                <div class="es-form-grid">
+                                    <div class="fg"><label for="esCertNo">Certificate No <small style="color:#999;">(auto)</small></label><input type="text" id="esCertNo" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
+                                    <div class="fg"><label for="esCertDate">Issued Date</label><input type="text" id="esCertDate"></div>
+                                    <div class="fg full"><label for="esAccRef">Account Reference <small style="color:#999;">(auto)</small></label><input type="text" id="esAccRef" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
+                                    <div class="fg full"><label for="esUniqueDocRef">Unique Doc Reference <small style="color:#999;">(auto)</small></label><input type="text" id="esUniqueDocRef" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
+                                </div>
+
+                                <div class="es-section-label"><i class="bi bi-people"></i> Party Details</div>
+                                <div class="es-form-grid">
+                                    <div class="fg"><label for="esPurchasedBy">Purchased By</label><input type="text" id="esPurchasedBy" placeholder="Enter name"></div>
+                                    <div class="fg"><label for="esFirstParty">First Party</label><input type="text" id="esFirstParty" placeholder="Enter name"></div>
+                                    <div class="fg"><label for="esSecondParty">Second Party</label><input type="text" id="esSecondParty" value="NA"></div>
+                                    <div class="fg"><label for="esStampPaidBy">Stamp Paid By</label><input type="text" id="esStampPaidBy" placeholder="Enter name"></div>
+                                </div>
+
+                                <div class="es-section-label"><i class="bi bi-cash-coin"></i> Document & Amount</div>
+                                <div class="es-form-grid">
+                                    <div class="fg"><label for="esDocDesc">Description of Document</label><input type="text" id="esDocDesc" value="Article 4 - Affidavit"></div>
+                                    <div class="fg"><label for="esPropDesc">Property Description</label><input type="text" id="esPropDesc" value="AFFIDAVIT"></div>
+                                    <div class="fg"><label for="esConsiderPrice">Consideration Price (Rs.)</label><input type="text" id="esConsiderPrice" value="0"></div>
+                                    <div class="fg"><label for="esStampDuty">Stamp Duty (Rs.)</label><input type="text" id="esStampDuty" value="100"></div>
+                                    <div class="fg"><label for="esAmountWords">Amount in Words</label><input type="text" id="esAmountWords" value="(One Hundred Only)"></div>
+                                    <div class="fg"><label for="esConsiderWords">Consideration in Words</label><input type="text" id="esConsiderWords" value="(Zero)"></div>
+                                </div>
+
+                                <div class="es-btn-row">
+                                    <button class="es-btn es-btn-primary" onclick="saveEstampRecord()"><i class="bi bi-check-lg"></i><span id="estampSaveBtnText">Save Certificate</span></button>
+                                    <button class="es-btn es-btn-secondary" onclick="resetEstampForm()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end .content-area -->
+    </div><!-- end .app-layout -->
+
+    <!-- Hidden certificate template -->
+    <div id="estampCertTemplate" style="position:absolute; left:-9999px; top:0;">
+        <div class="a4-sheet">
+            <div class="bg-text" id="esBgText"></div>
+            <div class="content-box">
+                <div class='cert-text' style='top:74.5mm; left:21mm; font-weight:bold;'>Certificate No</div>
+                <div class='cert-text' style='top:74.5mm; left:85mm; font-weight:bold;' id="es_certNo"></div>
+                <div class='cert-text' style='top:80.2mm; left:21mm;'>Certificate Issued Date</div>
+                <div class='cert-text' style='top:80.2mm; left:85mm;' id="es_certDate"></div>
+                <div class='cert-text' style='top:85.9mm; left:21mm;'>Account Reference</div>
+                <div class='cert-text' style='top:85.9mm; left:85mm;' id="es_accRef"></div>
+                <div class='cert-text' style='top:91.6mm; left:21mm;'>Unique Doc Reference</div>
+                <div class='cert-text' style='top:91.6mm; left:85mm;' id="es_uniqueDocRef"></div>
+                <div class='cert-text' style='top:97.3mm; left:21mm;'>Purchased by</div>
+                <div class='cert-text' style='top:97.3mm; left:85mm;' id="es_purchasedBy"></div>
+                <div class='cert-text' style='top:103mm; left:21mm;'>Description of Document</div>
+                <div class='cert-text' style='top:103mm; left:85mm;' id="es_docDesc"></div>
+                <div class='cert-text' style='top:108.7mm; left:21mm;'>Property Description</div>
+                <div class='cert-text' style='top:108.7mm; left:85mm;' id="es_propDesc"></div>
+                <div class='cert-text' style='top:114.4mm; left:21mm;'>Consideration Price (Rs.)</div>
+                <div class='cert-text' style='top:114.4mm; left:85mm;' id="es_considerPrice"></div>
+                <div class='cert-text' style='top:122.9mm; left:21mm;'>First Party</div>
+                <div class='cert-text' style='top:122.9mm; left:85mm;' id="es_firstParty"></div>
+                <div class='cert-text' style='top:128.6mm; left:21mm;'>Second Party</div>
+                <div class='cert-text' style='top:128.6mm; left:85mm;' id="es_secondParty"></div>
+                <div class='cert-text' style='top:134.3mm; left:21mm;'>Stamp Paid By</div>
+                <div class='cert-text' style='top:134.3mm; left:85mm;' id="es_stampPaidBy"></div>
+                <div class='cert-text' style='top:140mm; left:21mm;'>Stamp Duty Amount (Rs.)</div>
+                <div class='cert-text' style='top:140mm; left:85mm;' id="es_stampDuty"></div>
+                <div class="cert-text" style="top:144.5mm; left:86mm;" id="es_amountWords"></div>
+                <div class="cert-text" style="top:117.5mm; left:87mm;" id="es_considerWords"></div>
+                <div class="cert-text" style="top:51.5mm; left:171mm; font-size:20px; color:#d5d1d1; font-weight:bold;"><span id="es_stampDutyTop"></span></div>
+                <div class="outer-circle"><div class="inner-circle">
+                    <svg viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="85" stroke="#d5d1d1" stroke-width="4" fill="none"></circle>
+                        <circle cx="100" cy="100" r="60" stroke="#d5d1d1" stroke-width="1.5" fill="none"></circle>
+                        <defs>
+                            <path id="esArcTop" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"></path>
+                            <path id="esArcMiddle" d="M100,100 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0"></path>
+                            <path id="esArcBottom" d="M100,100 m52,0 a52,52 0 1,0 -104,0 a52,52 0 1,0 104,0"></path>
+                        </defs>
+                        <text dy="7"><textPath href="#esArcTop" startOffset="26%" text-anchor="middle" class="textArcTop" id="es_stamp_purchasedBy"></textPath></text>
+                        <text dy="1"><textPath href="#esArcMiddle" startOffset="26%" text-anchor="middle" class="textArcMiddle" id="es_stamp_certNo"></textPath></text>
+                        <text dy="1"><textPath href="#esArcBottom" startOffset="75%" text-anchor="middle" class="textArcBottom" id="es_stamp_certDate"></textPath></text>
+                        <text x="100" y="106" class="centerText" text-anchor="middle" id="es_stamp_amount"></text>
+                    </svg>
+                </div></div>
+                <div class="crosshair" style="top:157mm; left:58.5mm;"><svg viewBox="0 0 100 100" style="width:60%; height:97%;"><circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"></circle><line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"></line><line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"></line></svg></div>
+                <div class="crosshair" style="top:186mm; left:137mm;"><svg viewBox="0 0 100 100" style="width:60%; height:97%;"><circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"></circle><line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"></line><line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"></line></svg></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container-fluid px-4">
+            <span class="fw-bold"><i class="bi bi-shield-shaded me-2"></i>AYRA Services Super Admin</span>
+            <span class="small">&copy; 2026 — Super Administration Portal</span>
+        </div>
+    </footer>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Add New User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3"><label class="form-label">Full Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="newUserName" required></div>
+                        <div class="mb-3"><label class="form-label">Email <span class="text-danger">*</span></label><input type="email" class="form-control" id="newUserEmail" required></div>
+                        <div class="mb-3"><label class="form-label">Phone</label><input type="tel" class="form-control" id="newUserPhone" maxlength="10"></div>
+                        <div class="mb-3"><label class="form-label">Password</label><input type="text" class="form-control" id="newUserPassword" value="Ayraservices@123"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createUser()"><i class="bi bi-check-lg"></i> Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Admin Modal -->
+    <div class="modal fade" id="editAdminModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Admin</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editAdminId">
+                    <div class="mb-3"><label class="form-label">Full Name</label><input type="text" class="form-control" id="editAdminName"></div>
+                    <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="editAdminEmail"></div>
+                    <div class="mb-3"><label class="form-label">Phone</label><input type="tel" class="form-control" id="editAdminPhone" maxlength="10"></div>
+                    <div class="mb-3"><label class="form-label">New Password <small class="text-muted">(leave blank to keep)</small></label><input type="password" class="form-control" id="editAdminPassword"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateAdmin()"><i class="bi bi-check-lg"></i> Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3"><label class="form-label">Full Name</label><input type="text" class="form-control" id="editUserName"></div>
+                    <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="editUserEmail"></div>
+                    <div class="mb-3"><label class="form-label">Phone</label><input type="tel" class="form-control" id="editUserPhone" maxlength="10"></div>
+                    <div class="mb-3"><label class="form-label">New Password <small class="text-muted">(leave blank to keep)</small></label><input type="password" class="form-control" id="editUserPassword"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUser()"><i class="bi bi-check-lg"></i> Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- e-Stamp View Modal -->
+    <div class="modal fade" id="estampViewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#111;">
+                    <h5 class="modal-title text-white"><i class="bi bi-eye me-2"></i>e-Stamp Certificate</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="estampViewModalBody" style="background:#f0f2f5; padding:1.5rem;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-dark" id="estampViewPrintBtn"><i class="bi bi-printer me-1"></i>Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <i id="toastIcon" class="bi"></i>
+                <strong id="toastTitle" class="me-auto"></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div id="toastBody" class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/super_admin_dashboard.js') }}"></script>
+
+    <script>
+        /* ================================================================
+           SIDEBAR
+        ================================================================ */
+        let _currentService = 'namechange';
+
+        function activateService(service) {
+            document.querySelectorAll('.service-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
+            const panel = document.getElementById('panel-' + service);
+            if (panel) panel.classList.add('active');
+            const nav = document.getElementById('nav-' + service);
+            if (nav) nav.classList.add('active');
+            _currentService = service;
+            if (service === 'estamp') loadEstampRecords();
+        }
+
+        let _sidebarCollapsed = false;
+        function toggleSidebar() {
+            const sb = document.getElementById('leftSidebar');
+            const ic = document.getElementById('sidebarToggleIcon');
+            _sidebarCollapsed = !_sidebarCollapsed;
+            sb.classList.toggle('collapsed', _sidebarCollapsed);
+            ic.className = _sidebarCollapsed ? 'bi bi-layout-sidebar' : 'bi bi-layout-sidebar-reverse';
+        }
+
+        /* ================================================================
+           e-STAMP MODULE (Database-backed + Auto-generate)
+        ================================================================ */
+        let _estampRecords = [];
+        let _autoGenerated = false;
+
+        function switchEstampTab(tab) {
+            document.getElementById('estampTabRecords').classList.toggle('active', tab === 'records');
+            document.getElementById('estampTabNew').classList.toggle('active', tab === 'new');
+            document.getElementById('estampPanelRecords').classList.toggle('active', tab === 'records');
+            document.getElementById('estampPanelNew').classList.toggle('active', tab === 'new');
+            if (tab === 'records') loadEstampRecords();
+            if (tab === 'new' && !document.getElementById('estampEditId')?.value) autoGenerateEstampFields();
+        }
+
+        function getCurrentEstampDateTime() {
+            const now = new Date();
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const day = String(now.getDate()).padStart(2, '0');
+            const mon = months[now.getMonth()];
+            const year = now.getFullYear();
+            let hours = now.getHours();
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12; if (hours === 0) hours = 12;
+            return `${day}-${mon}-${year} ${String(hours).padStart(2, '0')}:${mins} ${ampm}`;
+        }
+
+        async function autoGenerateEstampFields() {
+            document.getElementById('esCertDate').value = getCurrentEstampDateTime();
+            try {
+                const resp = await fetch('/api/estamp/auto-generate');
+                const data = await resp.json();
+                if (data.success) {
+                    document.getElementById('esCertNo').value = data.certNo;
+                    document.getElementById('esAccRef').value = data.accRef;
+                    document.getElementById('esUniqueDocRef').value = data.uniqueDocRef;
+                    _autoGenerated = true;
+                }
+            } catch (err) { console.error('Auto-generate error:', err); }
+        }
+
+        async function loadEstampRecords() {
+            try {
+                const resp = await fetch('/api/estamp/records');
+                const data = await resp.json();
+                _estampRecords = data.success ? data.records : [];
+            } catch (err) { _estampRecords = []; }
+            renderEstampRecords();
+        }
+
+        function getEstampFormData() {
+            const v = id => (document.getElementById(id)?.value || '');
+            return { certNo: v('esCertNo'), certDate: v('esCertDate'), accRef: v('esAccRef'), uniqueDocRef: v('esUniqueDocRef'), purchasedBy: v('esPurchasedBy'), docDesc: v('esDocDesc'), propDesc: v('esPropDesc'), considerPrice: v('esConsiderPrice'), firstParty: v('esFirstParty'), secondParty: v('esSecondParty'), stampPaidBy: v('esStampPaidBy'), stampDuty: v('esStampDuty'), amountWords: v('esAmountWords'), considerWords: v('esConsiderWords') };
+        }
+
+        function setEstampFormData(d) {
+            const map = { esCertNo:'certNo', esCertDate:'certDate', esAccRef:'accRef', esUniqueDocRef:'uniqueDocRef', esPurchasedBy:'purchasedBy', esDocDesc:'docDesc', esPropDesc:'propDesc', esConsiderPrice:'considerPrice', esFirstParty:'firstParty', esSecondParty:'secondParty', esStampPaidBy:'stampPaidBy', esStampDuty:'stampDuty', esAmountWords:'amountWords', esConsiderWords:'considerWords' };
+            Object.entries(map).forEach(([elId, key]) => { const el = document.getElementById(elId); if (el) el.value = d[key] || ''; });
+        }
+
+        async function saveEstampRecord() {
+            const data = getEstampFormData();
+            if (!data.purchasedBy.trim()) { showToast('Warning', 'Please enter "Purchased By" name.', 'warning'); return; }
+            const editId = document.getElementById('estampEditId')?.value;
+            const url = editId ? `/api/estamp/records/${editId}` : '/api/estamp/records';
+            try {
+                const resp = await fetch(url, { method: editId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const result = await resp.json();
+                if (result.success) { showToast(editId ? 'Updated' : 'Saved', result.message, 'success'); _autoGenerated = false; resetEstampForm(); switchEstampTab('records'); }
+                else showToast('Error', result.message || 'Failed.', 'danger');
+            } catch (err) { showToast('Error', 'Network error.', 'danger'); }
+        }
+
+        function resetEstampForm() {
+            ['esPurchasedBy','esFirstParty','esStampPaidBy'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('esSecondParty').value = 'NA';
+            document.getElementById('esDocDesc').value = 'Article 4 - Affidavit';
+            document.getElementById('esPropDesc').value = 'AFFIDAVIT';
+            document.getElementById('esConsiderPrice').value = '0';
+            document.getElementById('esStampDuty').value = '100';
+            document.getElementById('esAmountWords').value = '(One Hundred Only)';
+            document.getElementById('esConsiderWords').value = '(Zero)';
+            document.getElementById('estampEditId').value = '';
+            document.getElementById('estampSaveBtnText').textContent = 'Save Certificate';
+            _autoGenerated = false;
+            autoGenerateEstampFields();
+        }
+
+        function renderEstampRecords() {
+            const tbody = document.getElementById('estampRecordsBody');
+            const empty = document.getElementById('estampEmptyState');
+            const cnt = document.getElementById('estampRecordCount');
+            if (!tbody) return;
+            if (cnt) cnt.textContent = _estampRecords.length;
+            if (!_estampRecords.length) { tbody.innerHTML = ''; if (empty) empty.style.display = ''; return; }
+            if (empty) empty.style.display = 'none';
+            const q = (document.getElementById('estampSearchInput')?.value || '').trim().toLowerCase();
+            let list = _estampRecords;
+            if (q) list = list.filter(r => (r.purchasedBy||'').toLowerCase().includes(q) || (r.certNo||'').toLowerCase().includes(q) || (r.firstParty||'').toLowerCase().includes(q));
+            tbody.innerHTML = list.map((r, i) => `<tr><td>${i+1}</td><td style="font-weight:600; font-size:.82rem;">${escapeHtml(r.certNo||'—')}</td><td>${escapeHtml(r.purchasedBy||'—')}</td><td>${escapeHtml(r.docDesc||'—')}</td><td><strong>₹${escapeHtml(r.stampDuty||'0')}</strong></td><td style="font-size:.8rem; color:var(--ink-muted);">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td><td><div class="d-flex gap-1"><button class="btn btn-sm btn-outline-primary" onclick="viewEstampRecord('${r.id}')" title="View"><i class="bi bi-eye"></i></button><button class="btn btn-sm btn-outline-success" onclick="printEstampRecord('${r.id}')" title="Print"><i class="bi bi-printer"></i></button><button class="btn btn-sm btn-outline-warning" onclick="editEstampRecord('${r.id}')" title="Edit"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteEstampRecord('${r.id}')" title="Delete"><i class="bi bi-trash"></i></button></div></td></tr>`).join('');
+        }
+
+        function filterEstampRecords() { renderEstampRecords(); }
+
+        function editEstampRecord(id) {
+            const r = _estampRecords.find(x => x.id === id); if (!r) return;
+            setEstampFormData(r);
+            document.getElementById('estampEditId').value = id;
+            document.getElementById('estampSaveBtnText').textContent = 'Update Certificate';
+            _autoGenerated = false;
+            switchEstampTab('new');
+            setTimeout(() => setEstampFormData(r), 50);
+        }
+
+        async function deleteEstampRecord(id) {
+            if (!confirm('Delete this e-Stamp record?')) return;
+            try {
+                const resp = await fetch(`/api/estamp/records/${id}`, { method: 'DELETE' });
+                const result = await resp.json();
+                if (result.success) { _estampRecords = _estampRecords.filter(r => r.id !== id); renderEstampRecords(); showToast('Deleted', 'Record deleted.', 'info'); }
+                else showToast('Error', result.message, 'danger');
+            } catch (err) { showToast('Error', 'Network error.', 'danger'); }
+        }
+
+        function populateCertTemplate(d) {
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ''; };
+            set('es_certNo',d.certNo); set('es_certDate',d.certDate); set('es_accRef',d.accRef); set('es_uniqueDocRef',d.uniqueDocRef);
+            set('es_purchasedBy',d.purchasedBy); set('es_docDesc',d.docDesc); set('es_propDesc',d.propDesc); set('es_considerPrice',d.considerPrice);
+            set('es_firstParty',d.firstParty); set('es_secondParty',d.secondParty); set('es_stampPaidBy',d.stampPaidBy); set('es_stampDuty',d.stampDuty);
+            set('es_amountWords',d.amountWords); set('es_considerWords',d.considerWords);
+            set('es_stampDutyTop','Rs.'+(d.stampDuty||'100'));
+            set('es_stamp_purchasedBy',d.purchasedBy); set('es_stamp_certNo',d.certNo); set('es_stamp_certDate',d.certDate); set('es_stamp_amount','RS: '+(d.stampDuty||'100'));
+            const bgEl = document.getElementById('esBgText');
+            if (bgEl) { const name = d.purchasedBy || 'AYRA SERVICES'; const line = (name+' ').repeat(25).trim(); const lines = []; for (let i=0;i<60;i++) lines.push(line+'  '+name); bgEl.textContent = lines.join('\n'); }
+        }
+
+        function buildCertPrintHTML(d) {
+            const name = d.purchasedBy || 'AYRA SERVICES'; const line = (name+' ').repeat(25).trim();
+            const bgLines = []; for (let i=0;i<60;i++) bgLines.push(line+'  '+name);
+            const bgText = bgLines.join('\n'); const amt = d.stampDuty || '100';
+            return `<!DOCTYPE html><html><head><title>e-Stamp Certificate</title><style>*{box-sizing:border-box}body{margin:0;padding:0;display:flex;justify-content:center}.a4-sheet{width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff}.bg-text{position:absolute;inset:0;z-index:1;opacity:.1;font-size:11px;color:#000;line-height:1.6em;white-space:pre;font-weight:bold;padding:12px;font-family:Arial,sans-serif}.content-box{width:210mm;height:297mm;position:relative;z-index:2;font-size:14px;color:#000;font-family:Arial,sans-serif;background:url("{{ url_for('static', filename='images/bond_bg.png') }}")no-repeat center center;background-size:cover;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.ct{position:absolute;font-size:13px;color:#222325;line-height:1;font-family:Arial,sans-serif}.outer-circle{width:111px;height:100px;border-radius:100%;display:flex;justify-content:center;align-items:center;background-color:#fff;position:absolute;top:175mm;left:158mm}.inner-circle{width:140px;height:140px;display:flex;justify-content:center;align-items:center}.outer-circle svg{width:150px;height:150px}.textArcTop,.textArcMiddle,.textArcBottom{font-size:12px;fill:#d5d1d1;font-weight:bold;letter-spacing:.5px;dominant-baseline:middle}.centerText{font-size:17px;fill:#d5d1d1;font-weight:bold}.crosshair{position:absolute;width:30mm;height:30mm;z-index:5}@page{size:A4;margin:0}</style></head><body><div class="a4-sheet"><div class="bg-text">${escapeHtml(bgText)}</div><div class="content-box"><div class="ct" style="top:74.5mm;left:21mm;font-weight:bold">Certificate No</div><div class="ct" style="top:74.5mm;left:85mm;font-weight:bold">${escapeHtml(d.certNo)}</div><div class="ct" style="top:80.2mm;left:21mm">Certificate Issued Date</div><div class="ct" style="top:80.2mm;left:85mm">${escapeHtml(d.certDate)}</div><div class="ct" style="top:85.9mm;left:21mm">Account Reference</div><div class="ct" style="top:85.9mm;left:85mm">${escapeHtml(d.accRef)}</div><div class="ct" style="top:91.6mm;left:21mm">Unique Doc Reference</div><div class="ct" style="top:91.6mm;left:85mm">${escapeHtml(d.uniqueDocRef)}</div><div class="ct" style="top:97.3mm;left:21mm">Purchased by</div><div class="ct" style="top:97.3mm;left:85mm">${escapeHtml(d.purchasedBy)}</div><div class="ct" style="top:103mm;left:21mm">Description of Document</div><div class="ct" style="top:103mm;left:85mm">${escapeHtml(d.docDesc)}</div><div class="ct" style="top:108.7mm;left:21mm">Property Description</div><div class="ct" style="top:108.7mm;left:85mm">${escapeHtml(d.propDesc)}</div><div class="ct" style="top:114.4mm;left:21mm">Consideration Price (Rs.)</div><div class="ct" style="top:114.4mm;left:85mm">${escapeHtml(d.considerPrice)}</div><div class="ct" style="top:117.5mm;left:87mm">${escapeHtml(d.considerWords)}</div><div class="ct" style="top:122.9mm;left:21mm">First Party</div><div class="ct" style="top:122.9mm;left:85mm">${escapeHtml(d.firstParty)}</div><div class="ct" style="top:128.6mm;left:21mm">Second Party</div><div class="ct" style="top:128.6mm;left:85mm">${escapeHtml(d.secondParty)}</div><div class="ct" style="top:134.3mm;left:21mm">Stamp Paid By</div><div class="ct" style="top:134.3mm;left:85mm">${escapeHtml(d.stampPaidBy)}</div><div class="ct" style="top:140mm;left:21mm">Stamp Duty Amount (Rs.)</div><div class="ct" style="top:140mm;left:85mm">${escapeHtml(amt)}</div><div class="ct" style="top:144.5mm;left:86mm">${escapeHtml(d.amountWords)}</div><div class="ct" style="top:51.5mm;left:171mm;font-size:20px;color:#d5d1d1;font-weight:bold">Rs.${escapeHtml(amt)}</div><div class="outer-circle"><div class="inner-circle"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="85" stroke="#d5d1d1" stroke-width="4" fill="none"/><circle cx="100" cy="100" r="60" stroke="#d5d1d1" stroke-width="1.5" fill="none"/><defs><path id="pAT" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/><path id="pAM" d="M100,100 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0"/><path id="pAB" d="M100,100 m52,0 a52,52 0 1,0 -104,0 a52,52 0 1,0 104,0"/></defs><text dy="7"><textPath href="#pAT" startOffset="26%" text-anchor="middle" class="textArcTop">${escapeHtml(d.purchasedBy)}</textPath></text><text dy="1"><textPath href="#pAM" startOffset="26%" text-anchor="middle" class="textArcMiddle">${escapeHtml(d.certNo)}</textPath></text><text dy="1"><textPath href="#pAB" startOffset="75%" text-anchor="middle" class="textArcBottom">${escapeHtml(d.certDate)}</textPath></text><text x="100" y="106" class="centerText" text-anchor="middle">RS: ${escapeHtml(amt)}</text></svg></div></div><div class="crosshair" style="top:157mm;left:58.5mm"><svg viewBox="0 0 100 100" style="width:60%;height:97%"><circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"/><line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"/><line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"/></svg></div><div class="crosshair" style="top:186mm;left:137mm"><svg viewBox="0 0 100 100" style="width:60%;height:97%"><circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"/><line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"/><line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"/></svg></div></div></div><script>window.onload=function(){window.print()}<\/script></body></html>`;
+        }
+
+        function viewEstampRecord(id) {
+            const r = _estampRecords.find(x => x.id === id); if (!r) return;
+            populateCertTemplate(r);
+            const tpl = document.getElementById('estampCertTemplate');
+            const clone = tpl.cloneNode(true); clone.style.position='static'; clone.style.left='0'; clone.removeAttribute('id');
+            const body = document.getElementById('estampViewModalBody'); body.innerHTML = '';
+            const w = document.createElement('div'); w.style.cssText='display:flex;justify-content:center;overflow:auto;padding:1rem 0;';
+            w.appendChild(clone); body.appendChild(w);
+            document.getElementById('estampViewPrintBtn').onclick = () => { const pw = window.open('','_blank'); pw.document.write(buildCertPrintHTML(r)); pw.document.close(); };
+            new bootstrap.Modal(document.getElementById('estampViewModal')).show();
+        }
+
+        function printEstampRecord(id) {
+            const r = _estampRecords.find(x => x.id === id); if (!r) return;
+            const pw = window.open('','_blank'); pw.document.write(buildCertPrintHTML(r)); pw.document.close();
+        }
+
+        function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+        document.addEventListener('DOMContentLoaded', function () { renderEstampRecords(); });
+    </script>
+</body>
+
+</html>

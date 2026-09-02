@@ -1,0 +1,2303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AYRA Services</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* ── Table header sort buttons ── */
+        .table-sort-btn {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            color: inherit;
+            font: inherit;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            white-space: nowrap;
+            line-height: 1.4;
+        }
+
+        .table-sort-btn:hover {
+            color: #4facfe;
+        }
+
+        .table-sort-btn .sort-arrow {
+            font-size: 0.78rem;
+            color: #9ca3af;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+
+        .table-sort-btn.active {
+            color: #4facfe;
+        }
+
+        .table-sort-btn.active .sort-arrow {
+            color: #4facfe;
+        }
+
+        .admin-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1050 !important;
+            width: 100%;
+        }
+
+
+        /* ══════════════════════════════════════════════
+           SIDEBAR LAYOUT
+        ══════════════════════════════════════════════ */
+        .app-layout {
+            display: flex;
+            min-height: calc(100vh - 60px);
+            position: relative;
+        }
+
+        .left-sidebar {
+            width: 220px;
+            min-width: 220px;
+            background: var(--surface, #1a1f2e);
+            border-right: 1px solid var(--rule, rgba(255, 255, 255, 0.08));
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 60px;
+            /* Match navbar height */
+            height: calc(100vh - 60px);
+            /* Fill viewport below navbar */
+            overflow-y: auto;
+            transition: width 0.25s ease, min-width 0.25s ease;
+            z-index: 100;
+            /* Well below navbar (1050) */
+            align-self: flex-start;
+            /* Prevent stretching */
+        }
+
+        .left-sidebar.collapsed {
+            width: 58px;
+            min-width: 58px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 0.35rem 1rem 0.65rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            margin-bottom: 0.4rem;
+        }
+
+        .sidebar-header-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.35);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        .left-sidebar.collapsed .sidebar-header-label {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-toggle-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.6rem 1rem;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .sidebar-nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+            border-left-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-nav-link.active {
+            color: #fff;
+            background: rgba(79, 172, 254, 0.14);
+            border-left-color: #4facfe;
+        }
+
+        .sidebar-nav-link .sidebar-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-nav-link .sidebar-label {
+            transition: opacity 0.2s;
+        }
+
+        .left-sidebar.collapsed .sidebar-nav-link .sidebar-label {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-x: hidden;
+            min-width: 0;
+        }
+
+        .service-panel {
+            display: none;
+        }
+
+        .service-panel.active {
+            display: block;
+        }
+
+        /* ── Coming Soon ── */
+        .empty-service-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .empty-service-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-service-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ink, #e2e8f0);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-service-subtitle {
+            font-size: 0.925rem;
+            color: var(--ink-muted, #94a3b8);
+            max-width: 380px;
+            line-height: 1.6;
+        }
+
+        .coming-soon-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(79, 172, 254, 0.12);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            color: #4facfe;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.35rem 0.875rem;
+            border-radius: 999px;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .left-sidebar {
+                width: 58px;
+                min-width: 58px;
+            }
+
+            .left-sidebar .sidebar-label,
+            .left-sidebar .sidebar-header-label {
+                opacity: 0;
+                width: 0;
+                overflow: hidden;
+            }
+
+            .sidebar-toggle-btn {
+                display: none;
+            }
+        }
+
+        /* ══════════════════════════════════════════════
+           e-STAMP STYLES (Simple Black & White)
+        ══════════════════════════════════════════════ */
+
+        .estamp-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--rule, rgba(255, 255, 255, 0.1));
+        }
+
+        .estamp-tab-btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--ink-muted, #94a3b8);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .estamp-tab-btn:hover {
+            color: var(--ink, #e2e8f0);
+        }
+
+        .estamp-tab-btn.active {
+            color: #4facfe;
+            border-bottom-color: #4facfe;
+        }
+
+        .estamp-tab-panel {
+            display: none;
+        }
+
+        .estamp-tab-panel.active {
+            display: block;
+        }
+
+        /* ── Simple B&W Form ── */
+        .es-form-container {
+            max-width: 780px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 2rem;
+        }
+
+        .es-form-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #111;
+            margin: 0 0 0.25rem;
+        }
+
+        .es-form-subtitle {
+            font-size: 0.8rem;
+            color: #888;
+            margin: 0 0 1.5rem;
+        }
+
+        .es-section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #999;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid #eee;
+            margin: 1.5rem 0 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .es-section-label:first-of-type {
+            margin-top: 0;
+        }
+
+        .es-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem 1.25rem;
+        }
+
+        .es-form-grid .fg {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .es-form-grid .fg.full {
+            grid-column: 1 / -1;
+        }
+
+        .es-form-grid .fg label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .es-form-grid .fg input {
+            padding: 0.45rem 0.65rem;
+            font-size: 0.85rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            color: #222;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .es-form-grid .fg input:focus {
+            border-color: #333;
+        }
+
+        .es-form-grid .fg input::placeholder {
+            color: #bbb;
+        }
+
+        .es-btn-row {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .es-btn {
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.15s;
+        }
+
+        .es-btn-primary {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+
+        .es-btn-primary:hover {
+            background: #333;
+        }
+
+        .es-btn-secondary {
+            background: #fff;
+            color: #333;
+        }
+
+        .es-btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        @media (max-width: 600px) {
+            .es-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .es-form-container {
+                padding: 1.25rem;
+            }
+        }
+
+        /* ── Certificate Preview (for print/view) ── */
+        .a4-sheet {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .bg-text {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            opacity: .1;
+            font-size: 11px;
+            color: #000;
+            line-height: 1.6em;
+            white-space: pre;
+            font-weight: bold;
+            padding: 12px;
+            font-family: Arial, sans-serif;
+        }
+
+        .content-box {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            z-index: 2;
+            font-size: 14px;
+            color: #000;
+            font-family: Arial, sans-serif;
+            background: url("{{ url_for('static', filename='images/bond_bg.png') }}") no-repeat center center;
+            background-size: cover;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        .cert-text {
+            position: absolute;
+            font-size: 13px;
+            color: #222325;
+            line-height: 1;
+            font-family: Arial, sans-serif;
+        }
+
+        .outer-circle {
+            width: 111px;
+            height: 100px;
+            border-radius: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            position: absolute;
+            top: 175mm;
+            left: 158mm;
+        }
+
+        .inner-circle {
+            width: 140px;
+            height: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .outer-circle svg {
+            width: 150px;
+            height: 150px;
+        }
+
+        .textArcTop,
+        .textArcMiddle,
+        .textArcBottom {
+            font-size: 12px;
+            fill: #d5d1d1;
+            font-weight: bold;
+            letter-spacing: .5px;
+            dominant-baseline: middle;
+        }
+
+        .centerText {
+            font-size: 17px;
+            fill: #d5d1d1;
+            font-weight: bold;
+        }
+
+        .crosshair {
+            position: absolute;
+            width: 30mm;
+            height: 30mm;
+            z-index: 5;
+        }
+
+        /* Hidden certificate template for rendering */
+        #estampCertTemplate {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+
+        @media print {
+
+            .no-print,
+            .left-sidebar,
+
+            .footer {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .app-layout {
+                display: block;
+            }
+
+            .a4-sheet {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .content-box,
+            .a4-sheet {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark admin-navbar">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <div class="brand-logo me-2"><i class="bi bi-shield-lock-fill"></i></div>
+                <div>
+                    <span class="brand-name">AYRA</span>
+                    <span class="text-light ms-2">Admin</span>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto me-3">
+                    <li class="nav-item"><span class="admin-badge">Admin Portal</span></li>
+                </ul>
+                <div class="dropdown user-dropdown">
+                    <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar" style="background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);">
+                            {{ admin_name[0].upper() if admin_name else 'A' }}
+                        </div>
+                        <span class="d-none d-md-inline">{{ admin_name or 'Admin' }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header">
+                            <strong>{{ admin_name }}</strong>
+                            <small class="text-muted">Administrator</small>
+                        </li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i
+                                    class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== APP LAYOUT ==================== -->
+    <div class="app-layout">
+
+        <!-- Sidebar -->
+        <aside class="left-sidebar" id="leftSidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-header-label">Services</span>
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+                    <i class="bi bi-layout-sidebar-reverse" id="sidebarToggleIcon"></i>
+                </button>
+            </div>
+            <ul class="sidebar-nav">
+                <li>
+                    <div class="sidebar-nav-link" id="nav-aadhaar" onclick="activateService('aadhaar')">
+                        <i class="bi bi-credit-card-2-front sidebar-icon"></i>
+                        <span class="sidebar-label">Aadhaar Services</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="sidebar-nav-link" id="nav-govt" onclick="activateService('govt')">
+                        <i class="bi bi-building sidebar-icon"></i>
+                        <span class="sidebar-label">Govt Services</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="sidebar-nav-link active" id="nav-namechange" onclick="activateService('namechange')">
+                        <i class="bi bi-person-badge sidebar-icon"></i>
+                        <span class="sidebar-label">Name Change</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="sidebar-nav-link" id="nav-estamp" onclick="activateService('estamp')">
+                        <i class="bi bi-postage sidebar-icon"></i>
+                        <span class="sidebar-label">e-Stamp</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="sidebar-nav-link" id="nav-affidavit" onclick="activateService('affidavit')">
+                        <i class="bi bi-file-earmark-text sidebar-icon"></i>
+                        <span class="sidebar-label">Affidavit</span>
+                    </div>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Content Area -->
+        <div class="content-area">
+
+            <!-- ═══════ Aadhaar ═══════ -->
+            <div class="service-panel" id="panel-aadhaar">
+                <div class="container-fluid px-4 py-4">
+                    <div class="empty-service-screen">
+                        <div class="empty-service-icon"
+                            style="background: linear-gradient(135deg, rgba(79,172,254,0.15), rgba(0,242,254,0.15)); border: 2px solid rgba(79,172,254,0.25);">
+                            <i class="bi bi-credit-card-2-front" style="color: #4facfe;"></i>
+                        </div>
+                        <div class="empty-service-title">Aadhaar Services</div>
+                        <div class="empty-service-subtitle">Aadhaar-related services will be available here soon.</div>
+                        <span class="coming-soon-badge"><i class="bi bi-clock-history"></i> Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Govt ═══════ -->
+            <div class="service-panel" id="panel-govt">
+                <div class="container-fluid px-4 py-4">
+                    <div class="empty-service-screen">
+                        <div class="empty-service-icon"
+                            style="background: linear-gradient(135deg, rgba(17,153,142,0.15), rgba(56,239,125,0.15)); border: 2px solid rgba(17,153,142,0.25);">
+                            <i class="bi bi-building" style="color: #11998e;"></i>
+                        </div>
+                        <div class="empty-service-title">Government Services</div>
+                        <div class="empty-service-subtitle">Government-related services will be available here.</div>
+                        <span class="coming-soon-badge"><i class="bi bi-clock-history"></i> Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Name Change ═══════ -->
+            <div class="service-panel active" id="panel-namechange">
+                <main class="main-content">
+                    <div class="container-fluid px-4 py-4">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3 col-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon"
+                                        style="background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div>
+                                        <div class="compact-stats-value" id="totalUsers">0</div>
+                                        <div class="compact-stats-label">Total Users</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon"
+                                        style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                                        <i class="bi bi-person-check"></i>
+                                    </div>
+                                    <div>
+                                        <div class="compact-stats-value" id="activeUsers">0</div>
+                                        <div class="compact-stats-label">Active Users</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon"
+                                        style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                        <i class="bi bi-files"></i>
+                                    </div>
+                                    <div>
+                                        <div class="compact-stats-value" id="totalDocuments">0</div>
+                                        <div class="compact-stats-label">Total Documents</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="compact-stats-card">
+                                    <div class="compact-stats-icon"
+                                        style="background: linear-gradient(135deg, #002bec 0%, #764ba2 100%);">
+                                        <i class="bi bi-file-earmark-check"></i>
+                                    </div>
+                                    <div>
+                                        <div class="compact-stats-value" id="generatedDocs">0</div>
+                                        <div class="compact-stats-label">Generated</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-tabs-container">
+                            <ul class="nav nav-tabs dashboard-tabs" id="adminTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="admin-overview-tab" data-bs-toggle="tab"
+                                        data-bs-target="#admin-overview" type="button" role="tab">
+                                        <i class="bi bi-graph-up me-2"></i>Overview
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="admin-users-tab" data-bs-toggle="tab"
+                                        data-bs-target="#admin-users" type="button" role="tab">
+                                        <i class="bi bi-people me-2"></i>Users
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="admin-documents-tab" data-bs-toggle="tab"
+                                        data-bs-target="#admin-documents" type="button" role="tab">
+                                        <i class="bi bi-files me-2"></i>Documents
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="adminTabsContent">
+                                <!-- Overview -->
+                                <div class="tab-pane fade show active" id="admin-overview" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <h5 class="section-title mb-4"><i
+                                                class="bi bi-bar-chart-fill text-primary me-2"></i>Document Statistics
+                                        </h5>
+                                        <div class="row g-4 mb-4">
+                                            <div class="col-md-3 col-6">
+                                                <div class="mini-stat-card">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="mini-stat-icon drafts"><i
+                                                                class="bi bi-file-earmark-text"></i></div>
+                                                        <div class="ms-3">
+                                                            <div class="mini-stat-value" id="overviewDrafts">0</div>
+                                                            <div class="mini-stat-label">Drafts</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mini-stat-card">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="mini-stat-icon pending"><i
+                                                                class="bi bi-hourglass-split"></i></div>
+                                                        <div class="ms-3">
+                                                            <div class="mini-stat-value" id="overviewPending">0</div>
+                                                            <div class="mini-stat-label">Pending</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mini-stat-card">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="mini-stat-icon approved"><i
+                                                                class="bi bi-check-circle"></i></div>
+                                                        <div class="ms-3">
+                                                            <div class="mini-stat-value" id="overviewApproved">0</div>
+                                                            <div class="mini-stat-label">Approved</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mini-stat-card">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="mini-stat-icon generated"><i
+                                                                class="bi bi-file-earmark-check"></i></div>
+                                                        <div class="ms-3">
+                                                            <div class="mini-stat-value" id="overviewGenerated">0</div>
+                                                            <div class="mini-stat-label">Generated</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h5 class="section-title mb-4 mt-5"><i
+                                                class="bi bi-people-fill text-info me-2"></i>User Activity Summary</h5>
+                                        <div class="table-responsive">
+                                            <table class="table data-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="overview" data-field="name"
+                                                                onclick="setAdminTableSort('overview','name')">User
+                                                                <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                        <th>Email</th>
+                                                        <th>Drafts</th>
+                                                        <th>Pending</th>
+                                                        <th>Approved</th>
+                                                        <th>Generated</th>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="overview" data-field="last_login"
+                                                                onclick="setAdminTableSort('overview','last_login')">
+                                                                Last Login <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="userActivityBody"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Users -->
+                                <div class="tab-pane fade" id="admin-users" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <div
+                                            class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                                            <h5 class="section-title mb-0"><i
+                                                    class="bi bi-people-fill text-primary me-2"></i>User Management</h5>
+                                            <button type="button" class="btn btn-primary"
+                                                onclick="showAddUserModal()"><i class="bi bi-person-plus me-1"></i>Add
+                                                User</button>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table data-table" id="usersTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="adminUsers" data-field="name"
+                                                                onclick="setAdminTableSort('adminUsers','name')">Name
+                                                                <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                        <th>Email</th>
+                                                        <th>Phone</th>
+                                                        <th>Status</th>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="adminUsers" data-field="created_at"
+                                                                onclick="setAdminTableSort('adminUsers','created_at')">
+                                                                Created <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="adminUsers" data-field="last_login"
+                                                                onclick="setAdminTableSort('adminUsers','last_login')">
+                                                                Last Login <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="usersTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="empty-state d-none" id="usersEmptyState">
+                                            <i class="bi bi-people"></i>
+                                            <h5>No users found</h5>
+                                            <p>Add users to get started</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Documents -->
+                                <div class="tab-pane fade" id="admin-documents" role="tabpanel">
+                                    <div class="tab-content-card">
+                                        <div
+                                            class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                                            <h5 class="section-title mb-0"><i
+                                                    class="bi bi-files text-primary me-2"></i>All Documents</h5>
+                                            <div class="d-flex gap-2 flex-wrap align-items-end" id="docsFilterBar">
+                                                <div style="min-width:200px; flex:1;">
+                                                    <label class="form-label"
+                                                        style="font-size:0.75rem; font-weight:600; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.35rem;">
+                                                        <i class="bi bi-person me-1"></i>User Name</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"
+                                                            style="padding:.4rem .65rem; background:var(--rule-soft); border:1.5px solid var(--rule); border-right:none;">
+                                                            <i class="bi bi-search"
+                                                                style="font-size:.8rem; color:var(--ink-muted);"></i></span>
+                                                        <input type="text" class="form-control" id="filterUserName"
+                                                            placeholder="Filter by user…"
+                                                            style="border-left:none; border:1.5px solid var(--rule); font-size:.875rem; min-height:38px; padding:.4rem .7rem;"
+                                                            oninput="applyDocFilters()">
+                                                    </div>
+                                                </div>
+                                                <div style="min-width:200px; flex:1;">
+                                                    <label class="form-label"
+                                                        style="font-size:0.75rem; font-weight:600; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.35rem;">
+                                                        <i class="bi bi-file-text me-1"></i>Old Name</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"
+                                                            style="padding:.4rem .65rem; background:var(--rule-soft); border:1.5px solid var(--rule); border-right:none;">
+                                                            <i class="bi bi-search"
+                                                                style="font-size:.8rem; color:var(--ink-muted);"></i></span>
+                                                        <input type="text" class="form-control" id="filterOldName"
+                                                            placeholder="Filter by old name…"
+                                                            style="border-left:none; border:1.5px solid var(--rule); font-size:.875rem; min-height:38px; padding:.4rem .7rem;"
+                                                            oninput="applyDocFilters()">
+                                                    </div>
+                                                </div>
+                                                <div style="align-self:flex-end;">
+                                                    <button class="btn btn-sm btn-secondary" onclick="clearDocFilters()"
+                                                        style="height:38px; padding:.3rem .8rem; font-size:.8rem; font-weight:600; border:1.5px solid var(--rule);">
+                                                        <i class="bi bi-x-circle me-1"></i>Clear</button>
+                                                </div>
+                                                <div style="align-self:flex-end;">
+                                                    <button type="button" class="btn btn-success btn-sm"
+                                                        id="bulkDownloadBtn" onclick="downloadSelectedDocs()" disabled
+                                                        style="height:38px; padding:.3rem .9rem; font-size:.8rem; font-weight:600;">
+                                                        <i class="bi bi-download me-1"></i>Download (<span
+                                                            id="selectedCount">0</span>)</button>
+                                                </div>
+                                            </div>
+                                            <div id="filterInfoBar" class="d-none"
+                                                style="display:flex; align-items:center; gap:.5rem; padding:.5rem .875rem; background:var(--rule-soft); border-radius:var(--radius-md); border:1px solid var(--rule); font-size:.8125rem; color:var(--ink-muted); margin-top:.75rem;">
+                                                <i class="bi bi-funnel-fill" style="color:var(--ink);"></i>
+                                                <span id="filterInfoText"></span>
+                                                <button class="btn btn-link btn-sm p-0 ms-auto"
+                                                    onclick="clearDocFilters()"
+                                                    style="font-size:.75rem; color:var(--ink-muted); text-decoration:none; font-weight:600;">Clear
+                                                    filters</button>
+                                            </div>
+                                        </div>
+                                        <div id="searchResultsInfo" class="alert alert-info py-2 d-none">
+                                            <i class="bi bi-funnel me-2"></i><span id="searchResultsText"></span>
+                                            <button class="btn btn-sm btn-link p-0 ms-2"
+                                                onclick="clearUserSearch()">Clear filter</button>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table data-table" id="adminDocsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:40px;"><input type="checkbox"
+                                                                class="form-check-input" id="selectAllDocs"
+                                                                onchange="toggleSelectAllDocs()"></th>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="adminDocs" data-field="user_name"
+                                                                onclick="setAdminTableSort('adminDocs','user_name')">
+                                                                User <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="adminDocs" data-field="old_name"
+                                                                onclick="setAdminTableSort('adminDocs','old_name')">Old
+                                                                Name <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                        <th>Template</th>
+                                                        <th>Status</th>
+                                                        <th>Published</th>
+                                                        <th>
+                                                            <button type="button" class="table-sort-btn"
+                                                                data-table="adminDocs" data-field="modified_at"
+                                                                onclick="setAdminTableSort('adminDocs','modified_at')">
+                                                                Modified <span class="sort-arrow">↕</span></button>
+                                                        </th>
+                                                        <th style="width:380px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="adminDocsTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="empty-state d-none" id="adminDocsEmptyState">
+                                            <i class="bi bi-files"></i>
+                                            <h5>No documents found</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            <!-- ═══════ e-Stamp ═══════ -->
+            <div class="service-panel" id="panel-estamp">
+                <div class="container-fluid px-4 py-4">
+
+                    <!-- Header -->
+                    <div class="estamp-tabs no-print d-flex justify-content-between align-items-center">
+                        <div class="d-flex">
+                            <button class="estamp-tab-btn active" id="estampTabRecords"
+                                onclick="switchEstampTab('records')">
+                                <i class="bi bi-table"></i> Records
+                            </button>
+                            <button class="estamp-tab-btn" id="estampTabNew" onclick="switchEstampTab('new')">
+                                <i class="bi bi-plus-circle"></i> New Certificate
+                            </button>
+                        </div>
+                        <span class="badge"
+                            style="background:rgba(233,69,96,0.15); color:#e94560; font-size:0.75rem; padding:0.4rem 0.9rem; border-radius:999px; font-weight:600; margin-bottom:8px; margin-right:6px;">
+                            <i class="bi bi-stack me-1"></i><span id="estampRecordCount">0</span> Records
+                        </span>
+                    </div>
+
+                    <!-- Records Tab -->
+                    <div class="estamp-tab-panel active" id="estampPanelRecords">
+                        <div class="tab-content-card" style="margin-top:0; border-top-left-radius:0;">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                <div class="input-group" style="max-width:300px;">
+                                    <span class="input-group-text"
+                                        style="background:var(--rule-soft); border:1.5px solid var(--rule); border-right:none;">
+                                        <i class="bi bi-search"
+                                            style="font-size:.8rem; color:var(--ink-muted);"></i></span>
+                                    <input type="text" class="form-control" id="estampSearchInput"
+                                        placeholder="Search by name, cert no…" oninput="filterEstampRecords()"
+                                        style="border-left:none; border:1.5px solid var(--rule); font-size:.85rem;">
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="switchEstampTab('new')"
+                                    style="font-weight:600;">
+                                    <i class="bi bi-plus-lg me-1"></i>New Certificate
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table data-table" id="estampRecordsTable">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40px;">#</th>
+                                            <th>Certificate No</th>
+                                            <th>Purchased By</th>
+                                            <th>Document</th>
+                                            <th>Amount</th>
+                                            <th>Date</th>
+                                            <th style="width:160px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="estampRecordsBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="estampEmptyState">
+                                <i class="bi bi-stamp" style="font-size:3rem; color:var(--ink-muted);"></i>
+                                <h5 style="margin-top:1rem;">No e-Stamp records yet</h5>
+                                <p style="color:var(--ink-muted);">Click "New Certificate" to create one</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Certificate Tab (Simple B&W Form) -->
+                    <div class="estamp-tab-panel" id="estampPanelNew">
+                        <div class="tab-content-card" style="margin-top:0; border-top-left-radius:0;">
+                            <div class="es-form-container">
+                                <div class="es-form-title">e-Stamp Bond Certificate</div>
+                                <div class="es-form-subtitle">Fill in the details below to create a certificate.</div>
+
+                                <input type="hidden" id="estampEditId" value="">
+
+                                <!-- Certificate Details -->
+                                <div class="es-section-label"><i class="bi bi-file-earmark-lock"></i> Certificate
+                                    Details</div>
+                                <div class="es-form-grid">
+                                    <div class="fg">
+                                        <label for="esCertNo">Certificate No <small
+                                                style="color:#999;">(auto)</small></label>
+                                        <input type="text" id="esCertNo" readonly
+                                            style="background:#f5f5f5; cursor:not-allowed;">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esCertDate">Issued Date</label>
+                                        <input type="text" id="esCertDate" value="25-Jul-2026 09:39 AM">
+                                    </div>
+                                    <div class="fg full">
+                                        <label for="esAccRef">Account Reference <small
+                                                style="color:#999;">(auto)</small></label>
+                                        <input type="text" id="esAccRef" readonly
+                                            style="background:#f5f5f5; cursor:not-allowed;">
+                                    </div>
+                                    <div class="fg full">
+                                        <label for="esUniqueDocRef">Unique Doc Reference <small
+                                                style="color:#999;">(auto)</small></label>
+                                        <input type="text" id="esUniqueDocRef" readonly
+                                            style="background:#f5f5f5; cursor:not-allowed;">
+                                    </div>
+                                </div>
+
+                                <!-- Party Details -->
+                                <div class="es-section-label"><i class="bi bi-people"></i> Party Details</div>
+                                <div class="es-form-grid">
+                                    <div class="fg">
+                                        <label for="esPurchasedBy">Purchased By</label>
+                                        <input type="text" id="esPurchasedBy" placeholder="Enter name">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esFirstParty">First Party</label>
+                                        <input type="text" id="esFirstParty" placeholder="Enter name">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esSecondParty">Second Party</label>
+                                        <input type="text" id="esSecondParty" value="NA">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esStampPaidBy">Stamp Paid By</label>
+                                        <input type="text" id="esStampPaidBy" placeholder="Enter name">
+                                    </div>
+                                </div>
+
+                                <!-- Document & Amount -->
+                                <div class="es-section-label"><i class="bi bi-cash-coin"></i> Document & Amount</div>
+                                <div class="es-form-grid">
+                                    <div class="fg">
+                                        <label for="esDocDesc">Description of Document</label>
+                                        <input type="text" id="esDocDesc" value="Article 4 - Affidavit">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esPropDesc">Property Description</label>
+                                        <input type="text" id="esPropDesc" value="AFFIDAVIT">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esConsiderPrice">Consideration Price (Rs.)</label>
+                                        <input type="text" id="esConsiderPrice" value="0">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esStampDuty">Stamp Duty (Rs.)</label>
+                                        <input type="text" id="esStampDuty" value="100">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esAmountWords">Amount in Words</label>
+                                        <input type="text" id="esAmountWords" value="(One Hundred Only)">
+                                    </div>
+                                    <div class="fg">
+                                        <label for="esConsiderWords">Consideration in Words</label>
+                                        <input type="text" id="esConsiderWords" value="(Zero)">
+                                    </div>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="es-btn-row">
+                                    <button class="es-btn es-btn-primary" onclick="saveEstampRecord()">
+                                        <i class="bi bi-check-lg"></i><span id="estampSaveBtnText">Save
+                                            Certificate</span>
+                                    </button>
+                                    <button class="es-btn es-btn-secondary" onclick="resetEstampForm()">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ═══════ Affidavit ═══════ -->
+            <div class="service-panel" id="panel-affidavit">
+                <div class="container-fluid px-4 py-4">
+
+                    <!-- Header -->
+                    <div class="estamp-tabs no-print d-flex justify-content-between align-items-center">
+                        <div class="d-flex">
+                            <button class="estamp-tab-btn active" id="affidavitTabRecords"
+                                onclick="switchAffidavitTab('records')">
+                                <i class="bi bi-table"></i> Records
+                            </button>
+                            <button class="estamp-tab-btn" id="affidavitTabNew" onclick="switchAffidavitTab('new')">
+                                <i class="bi bi-plus-circle"></i> New Affidavit
+                            </button>
+                        </div>
+                        <span class="badge"
+                            style="background:rgba(79,172,254,0.15); color:#4facfe; font-size:0.75rem; padding:0.4rem 0.9rem; border-radius:999px; font-weight:600; margin-bottom:8px; margin-right:6px;">
+                            <i class="bi bi-stack me-1"></i><span id="affidavitRecordCount">0</span> Records
+                        </span>
+                    </div>
+
+                    <!-- Records Tab -->
+                    <div class="estamp-tab-panel active" id="affidavitPanelRecords">
+                        <div class="tab-content-card" style="margin-top:0; border-top-left-radius:0;">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <div class="input-group" style="max-width:260px;">
+                                        <span class="input-group-text"
+                                            style="background:var(--rule-soft); border:1.5px solid var(--rule); border-right:none;">
+                                            <i class="bi bi-search"
+                                                style="font-size:.8rem; color:var(--ink-muted);"></i></span>
+                                        <input type="text" class="form-control" id="affidavitSearchInput"
+                                            placeholder="Search records..." oninput="filterAffidavitRecords()"
+                                            style="border-left:none; border:1.5px solid var(--rule); font-size:.85rem;">
+                                    </div>
+                                    <select class="form-select" id="affidavitCategoryFilter"
+                                        onchange="filterAffidavitRecords()"
+                                        style="max-width:200px; border:1.5px solid var(--rule); font-size:.85rem; height:38px;">
+                                        <option value="all">All Categories</option>
+                                        <option value="aadhaar_reactivation">Aadhaar Reactivation</option>
+                                        <option value="dob_correction">DOB Correction</option>
+                                        <option value="passport_name_change">Passport Name Change</option>
+                                        <option value="rental_agreement">Rental Agreement</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="switchAffidavitTab('new')"
+                                    style="font-weight:600;">
+                                    <i class="bi bi-plus-lg me-1"></i>New Affidavit
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table data-table" id="affidavitRecordsTable">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40px;">#</th>
+                                            <th>Record ID</th>
+                                            <th>Template</th>
+                                            <th>Deponent Name</th>
+                                            <th>Created At</th>
+                                            <th style="width:180px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="affidavitRecordsBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state" id="affidavitEmptyState">
+                                <i class="bi bi-file-earmark-text" style="font-size:3rem; color:var(--ink-muted);"></i>
+                                <h5 style="margin-top:1rem;">No affidavit records yet</h5>
+                                <p style="color:var(--ink-muted);">Click "New Affidavit" to create your first document
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Tab (Dynamic Category-Sensitive Form) -->
+                    <div class="estamp-tab-panel" id="affidavitPanelNew">
+                        <div class="tab-content-card" style="margin-top:0; border-top-left-radius:0;">
+                            <div class="es-form-container">
+                                <div class="es-form-title">Affidavit Document Form</div>
+                                <div class="es-form-subtitle">Select your category and template to generate form fields.
+                                </div>
+
+                                <input type="hidden" id="affidavitEditId" value="">
+
+                                <!-- Category Selection Group -->
+                                <div class="es-section-label"><i class="bi bi-folder-fill"></i> Document Type Selection
+                                </div>
+                                <div class="es-form-grid mb-4">
+                                    <div class="fg">
+                                        <label for="affCategorySelect">Category</label>
+                                        <select id="affCategorySelect" onchange="handleAffidavitCategoryChange()"
+                                            style="padding: 0.45rem 0.65rem; font-size: 0.85rem; border: 1px solid #ccc; border-radius: 4px;">
+                                            <option value="" disabled selected>-- Choose Category --</option>
+                                            <option value="aadhaar_reactivation">Aadhaar Reactivation</option>
+                                            <option value="dob_correction">DOB Correction</option>
+                                            <option value="passport_name_change">Passport Name Change</option>
+                                            <option value="rental_agreement">Rental Agreement</option>
+                                        </select>
+                                    </div>
+                                    <div class="fg" id="affVariantWrapper" style="display:none;">
+                                        <label for="affVariantSelect">Template Variant</label>
+                                        <select id="affVariantSelect" onchange="handleAffidavitVariantChange()"
+                                            style="padding: 0.45rem 0.65rem; font-size: 0.85rem; border: 1px solid #ccc; border-radius: 4px;">
+                                            <!-- Dynamically injected -->
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Input Fields Container (Injected via Javascript) -->
+                                <div id="affDynamicFormContainer" style="display:none;">
+                                    <div class="es-section-label"><i class="bi bi-pencil-square"></i> Document Field
+                                        Data</div>
+                                    <div class="es-form-grid" id="affDynamicFormBody">
+                                        <!-- Dynamically injected fields -->
+                                    </div>
+                                </div>
+
+                                <!-- Action Triggers -->
+                                <div class="es-btn-row">
+                                    <button class="es-btn es-btn-primary" onclick="saveAffidavitRecord()">
+                                        <i class="bi bi-check-lg"></i><span id="affidavitSaveBtnText">Save
+                                            Document</span>
+                                    </button>
+                                    <button class="es-btn es-btn-secondary" onclick="resetAffidavitForm()">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hidden certificate template for rendering print/view -->
+    <div id="estampCertTemplate" style="position:absolute; left:-9999px; top:0;">
+        <div class="a4-sheet">
+            <div class="bg-text" id="esBgText"></div>
+            <div class="content-box">
+                <div class='cert-text' style='top:74.5mm; left:21mm; font-weight:bold;'>Certificate No</div>
+                <div class='cert-text' style='top:74.5mm; left:85mm; font-weight:bold;' id="es_certNo"></div>
+                <div class='cert-text' style='top:80.2mm; left:21mm;'>Certificate Issued Date</div>
+                <div class='cert-text' style='top:80.2mm; left:85mm;' id="es_certDate"></div>
+                <div class='cert-text' style='top:85.9mm; left:21mm;'>Account Reference</div>
+                <div class='cert-text' style='top:85.9mm; left:85mm;' id="es_accRef"></div>
+                <div class='cert-text' style='top:91.6mm; left:21mm;'>Unique Doc Reference</div>
+                <div class='cert-text' style='top:91.6mm; left:85mm;' id="es_uniqueDocRef"></div>
+                <div class='cert-text' style='top:97.3mm; left:21mm;'>Purchased by</div>
+                <div class='cert-text' style='top:97.3mm; left:85mm;' id="es_purchasedBy"></div>
+                <div class='cert-text' style='top:103mm; left:21mm;'>Description of Document</div>
+                <div class='cert-text' style='top:103mm; left:85mm;' id="es_docDesc"></div>
+                <div class='cert-text' style='top:108.7mm; left:21mm;'>Property Description</div>
+                <div class='cert-text' style='top:108.7mm; left:85mm;' id="es_propDesc"></div>
+                <div class='cert-text' style='top:114.4mm; left:21mm;'>Consideration Price (Rs.)</div>
+                <div class='cert-text' style='top:114.4mm; left:85mm;' id="es_considerPrice"></div>
+                <div class='cert-text' style='top:122.9mm; left:21mm;'>First Party</div>
+                <div class='cert-text' style='top:122.9mm; left:85mm;' id="es_firstParty"></div>
+                <div class='cert-text' style='top:128.6mm; left:21mm;'>Second Party</div>
+                <div class='cert-text' style='top:128.6mm; left:85mm;' id="es_secondParty"></div>
+                <div class='cert-text' style='top:134.3mm; left:21mm;'>Stamp Paid By</div>
+                <div class='cert-text' style='top:134.3mm; left:85mm;' id="es_stampPaidBy"></div>
+                <div class='cert-text' style='top:140mm; left:21mm;'>Stamp Duty Amount (Rs.)</div>
+                <div class='cert-text' style='top:140mm; left:85mm;' id="es_stampDuty"></div>
+                <div class="cert-text" style="top:144.5mm; left:86mm;" id="es_amountWords"></div>
+                <div class="cert-text" style="top:117.5mm; left:87mm;" id="es_considerWords"></div>
+                <div class="cert-text" style="top:51.5mm; left:171mm; font-size:20px; color:#d5d1d1; font-weight:bold;">
+                    <span id="es_stampDutyTop"></span>
+                </div>
+                <!-- Circular Stamp -->
+                <div class="outer-circle">
+                    <div class="inner-circle">
+                        <svg viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="85" stroke="#d5d1d1" stroke-width="4" fill="none"></circle>
+                            <circle cx="100" cy="100" r="60" stroke="#d5d1d1" stroke-width="1.5" fill="none"></circle>
+                            <defs>
+                                <path id="esArcTop" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"></path>
+                                <path id="esArcMiddle" d="M100,100 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0">
+                                </path>
+                                <path id="esArcBottom" d="M100,100 m52,0 a52,52 0 1,0 -104,0 a52,52 0 1,0 104,0"></path>
+                            </defs>
+                            <text dy="7">
+                                <textPath href="#esArcTop" startOffset="26%" text-anchor="middle" class="textArcTop"
+                                    id="es_stamp_purchasedBy"></textPath>
+                            </text>
+                            <text dy="1">
+                                <textPath href="#esArcMiddle" startOffset="26%" text-anchor="middle"
+                                    class="textArcMiddle" id="es_stamp_certNo"></textPath>
+                            </text>
+                            <text dy="1">
+                                <textPath href="#esArcBottom" startOffset="75%" text-anchor="middle"
+                                    class="textArcBottom" id="es_stamp_certDate"></textPath>
+                            </text>
+                            <text x="100" y="106" class="centerText" text-anchor="middle" id="es_stamp_amount"></text>
+                        </svg>
+                    </div>
+                </div>
+                <!-- Crosshairs -->
+                <div class="crosshair" style="top:157mm; left:58.5mm;">
+                    <svg viewBox="0 0 100 100" style="width:60%; height:97%;">
+                        <circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"></circle>
+                        <line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"></line>
+                        <line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"></line>
+                    </svg>
+                </div>
+                <div class="crosshair" style="top:186mm; left:137mm;">
+                    <svg viewBox="0 0 100 100" style="width:60%; height:97%;">
+                        <circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"></circle>
+                        <line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"></line>
+                        <line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"></line>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container-fluid px-4">
+            <span class="fw-bold"><i class="bi bi-shield-lock-fill me-2"></i>AYRA Services Admin</span>
+            <span class="ms-3 small">&copy; 2026 - Administration Portal</span>
+        </div>
+    </footer>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:white"><i class="bi bi-person-plus me-2"></i>Add New User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="newUserName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email (Username) <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="newUserEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="newUserPhone" maxlength="10">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="newUserPassword" value="Ayraservices@123"
+                                    placeholder="Enter password">
+                                <button type="button" class="btn btn-outline-secondary"
+                                    onclick="generateRandomPassword()" title="Generate random password"><i
+                                        class="bi bi-shuffle"></i></button>
+                                <button type="button" class="btn btn-outline-secondary"
+                                    onclick="resetToDefaultPassword()" title="Reset to default"><i
+                                        class="bi bi-arrow-counterclockwise"></i></button>
+                            </div>
+                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>You can type a custom
+                                password, generate random, or use default</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createUser()"><i
+                            class="bi bi-check-lg me-1"></i>Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:white"><i class="bi bi-pencil me-2"></i>Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editUserName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="editUserEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="editUserPhone" maxlength="10">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password <small class="text-muted">(leave blank to keep
+                                current)</small></label>
+                        <input type="password" class="form-control" id="editUserPassword"
+                            placeholder="Enter new password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUser()"><i
+                            class="bi bi-check-lg me-1"></i>Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Document Modal -->
+    <div class="modal fade edit-doc-modal" id="editDocModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:white"><i class="bi bi-pencil-square me-2"></i>Edit Document
+                        <span class="badge bg-secondary ms-2" id="editDocTemplateBadge"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="editDocBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveDocumentChanges()"><i
+                            class="bi bi-check-lg me-1"></i>Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Document Modal -->
+    <div class="modal fade" id="viewDocModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:white"><i class="bi bi-eye me-2"></i>View Document</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewDocBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Modal -->
+    <div class="modal fade print-preview-modal" id="printPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header no-print"
+                    style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <h5 class="modal-title text-white"><i class="bi bi-printer me-2"></i>Print Preview</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="printPreviewBody"></div>
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="printDocuments()"><i
+                            class="bi bi-printer me-1"></i>Print All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Progress Modal -->
+    <div class="modal fade" id="printProgressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+            <div class="modal-content"
+                style="border-radius:var(--radius-xl); border:1px solid var(--rule); overflow:hidden; box-shadow:var(--shadow-xl);">
+                <div
+                    style="background:var(--ink); padding:1.25rem 1.5rem; display:flex; align-items:center; gap:.875rem;">
+                    <div
+                        style="width:36px; height:36px; background:rgba(255,255,255,.12); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="bi bi-printer" style="color:#fff; font-size:1rem;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="color:#fff; font-weight:700; font-size:.9375rem;" id="printProgressTitle">
+                            Generating PDF…</div>
+                        <div style="color:rgba(255,255,255,.55); font-size:.75rem;" id="printProgressSubtitle">Please
+                            wait</div>
+                    </div>
+                    <button class="btn btn-sm d-none" id="printCancelHeaderBtn" onclick="cancelCurrentPrintJob()"
+                        style="background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3); font-weight:600; font-size:.75rem; padding:.35rem .75rem; border-radius:var(--radius-md);"
+                        onmouseover="this.style.background='rgba(220,38,38,.8)'"
+                        onmouseout="this.style.background='rgba(255,255,255,.15)'">
+                        <i class="bi bi-x-circle me-1"></i>Cancel</button>
+                </div>
+                <div style="padding:1.25rem 1.5rem; background:#fff;">
+                    <div style="margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:.375rem;">
+                            <span
+                                style="font-size:.75rem; font-weight:600; color:var(--ink-muted); text-transform:uppercase;">Progress</span>
+                            <span style="font-size:.75rem; font-weight:700; color:var(--ink);"
+                                id="printProgressPct">0%</span>
+                        </div>
+                        <div
+                            style="height:6px; background:var(--rule-soft); border-radius:var(--radius-full); overflow:hidden;">
+                            <div id="printProgressBar"
+                                style="height:100%; width:0%; background:var(--ink); border-radius:var(--radius-full); transition:width .4s ease;">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="printStepLog"
+                        style="background:var(--rule-soft); border:1px solid var(--rule); border-radius:var(--radius-lg); padding:.875rem 1rem; min-height:160px; max-height:280px; overflow-y:auto; font-size:.8125rem; line-height:1.6;">
+                    </div>
+                    <div id="printDoneActions" class="d-none"
+                        style="margin-top:1rem; display:flex; gap:.75rem; justify-content:flex-end;">
+                        <button class="btn btn-secondary btn-sm" onclick="closePrintProgress()"
+                            style="font-weight:600;">Close</button>
+                        <button class="btn btn-primary btn-sm" id="openPdfBtn" style="font-weight:600;"><i
+                                class="bi bi-box-arrow-up-right me-1"></i>Open PDF</button>
+                    </div>
+                    <div id="printCancelledActions" class="d-none"
+                        style="margin-top:1rem; display:flex; gap:.75rem; justify-content:flex-end;">
+                        <button class="btn btn-secondary btn-sm" onclick="closePrintProgress()"
+                            style="font-weight:600;">Close</button>
+                        <button class="btn btn-primary btn-sm" id="retryCancelledBtn" style="font-weight:600;"><i
+                                class="bi bi-arrow-repeat me-1"></i>Retry</button>
+                    </div>
+                    <div id="printErrorActions" class="d-none"
+                        style="margin-top:1rem; display:flex; gap:.75rem; justify-content:flex-end;">
+                        <button class="btn btn-secondary btn-sm" onclick="closePrintProgress()"
+                            style="font-weight:600;">Close</button>
+                        <button class="btn btn-primary btn-sm" id="retryPrintBtn" style="font-weight:600;"><i
+                                class="bi bi-arrow-repeat me-1"></i>Retry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- e-Stamp View Modal -->
+    <div class="modal fade" id="estampViewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#111;">
+                    <h5 class="modal-title text-white"><i class="bi bi-eye me-2"></i>e-Stamp Certificate</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="estampViewModalBody" style="background:#f0f2f5; padding:1.5rem;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-dark" id="estampViewPrintBtn">
+                        <i class="bi bi-printer me-1"></i>Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <i id="toastIcon" class="bi me-2"></i>
+                <strong id="toastTitle" class="me-auto"></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div id="toastBody" class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+
+    <script>
+        /* ================================================================
+           SIDEBAR
+        ================================================================ */
+        let _currentService = 'namechange';
+
+        function activateService(service) {
+            document.querySelectorAll('.service-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
+            const panel = document.getElementById('panel-' + service);
+            if (panel) panel.classList.add('active');
+            const nav = document.getElementById('nav-' + service);
+            if (nav) nav.classList.add('active');
+            _currentService = service;
+
+            // Native loaders
+            if (service === 'estamp') {
+                loadEstampRecords();
+            }
+            if (service === 'affidavit') {
+                if (typeof loadAffidavitRecords === 'function') {
+                    loadAffidavitRecords();
+                }
+                if (typeof switchAffidavitTab === 'function') {
+                    switchAffidavitTab('records');
+                }
+            }
+        }
+
+
+        let _sidebarCollapsed = false;
+
+        function toggleSidebar() {
+            const sb = document.getElementById('leftSidebar');
+            const ic = document.getElementById('sidebarToggleIcon');
+            _sidebarCollapsed = !_sidebarCollapsed;
+            sb.classList.toggle('collapsed', _sidebarCollapsed);
+            ic.className = _sidebarCollapsed ? 'bi bi-layout-sidebar' : 'bi bi-layout-sidebar-reverse';
+        }
+
+        /* ================================================================
+           DOC FILTERS
+        ================================================================ */
+        let _docFilterStatus = 'all';
+        let _allAdminDocs = [];
+
+        function setStatusFilter(status, btn) {
+            _docFilterStatus = status;
+            document.querySelectorAll('.doc-status-btn').forEach(b => {
+                const a = b === btn;
+                b.style.background = a ? 'var(--ink)' : '#fff';
+                b.style.color = a ? '#fff' : 'var(--ink-muted)';
+                b.style.borderColor = a ? 'var(--ink)' : 'var(--rule)';
+            });
+            applyDocFilters();
+        }
+
+        function applyDocFilters() {
+            const uN = (document.getElementById('filterUserName')?.value || '').trim().toLowerCase();
+            const oN = (document.getElementById('filterOldName')?.value || '').trim().toLowerCase();
+            const st = _docFilterStatus;
+            const rows = document.querySelectorAll('#adminDocsTableBody tr');
+            let vis = 0;
+            rows.forEach(r => {
+                const show = (!uN || (r.dataset.userName || '').toLowerCase().includes(uN)) &&
+                    (!oN || (r.dataset.oldName || '').toLowerCase().includes(oN)) &&
+                    (st === 'all' || (r.dataset.status || '').toLowerCase() === st);
+                r.style.display = show ? '' : 'none';
+                if (show) vis++;
+            });
+            updateFilterInfoBar(uN, oN, st, vis, rows.length);
+            const e = document.getElementById('adminDocsEmptyState');
+            if (e) e.classList.toggle('d-none', vis > 0);
+        }
+
+        function updateFilterInfoBar(uN, oN, st, vis, tot) {
+            const bar = document.getElementById('filterInfoBar');
+            const txt = document.getElementById('filterInfoText');
+            if (!bar || !txt) return;
+            const p = [];
+            if (uN) p.push(`User: "<strong>${escapeHtml(uN)}</strong>"`);
+            if (oN) p.push(`Old Name: "<strong>${escapeHtml(oN)}</strong>"`);
+            if (st !== 'all') p.push(`Status: <strong>${capitalize(st)}</strong>`);
+            if (!p.length) bar.classList.add('d-none');
+            else { bar.classList.remove('d-none'); txt.innerHTML = p.join(' · ') + ` — <strong>${vis}</strong> of <strong>${tot}</strong>`; }
+        }
+
+        function clearDocFilters() {
+            const a = document.getElementById('filterUserName'), b = document.getElementById('filterOldName');
+            if (a) a.value = ''; if (b) b.value = '';
+            const btn = document.querySelector('.doc-status-btn[data-status="all"]');
+            if (btn) setStatusFilter('all', btn); else applyDocFilters();
+        }
+
+        function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        /* ================================================================
+   e-STAMP MODULE (Database-backed + Auto-generate)
+================================================================ */
+        let _estampRecords = [];
+        let _autoGenerated = false; // track if auto-fields were fetched for current form
+
+        function switchEstampTab(tab) {
+            document.getElementById('estampTabRecords').classList.toggle('active', tab === 'records');
+            document.getElementById('estampTabNew').classList.toggle('active', tab === 'new');
+            document.getElementById('estampPanelRecords').classList.toggle('active', tab === 'records');
+            document.getElementById('estampPanelNew').classList.toggle('active', tab === 'new');
+            if (tab === 'records') loadEstampRecords();
+            if (tab === 'new' && !document.getElementById('estampEditId')?.value) {
+                // Auto-generate fields for new certificate
+                autoGenerateEstampFields();
+            }
+        }
+
+        function getCurrentEstampDateTime() {
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = String(now.getDate()).padStart(2, '0');
+            const mon = months[now.getMonth()];
+            const year = now.getFullYear();
+            let hours = now.getHours();
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            if (hours === 0) hours = 12;
+            return `${day}-${mon}-${year} ${String(hours).padStart(2, '0')}:${mins} ${ampm}`;
+        }
+
+        /* ── Auto-generate cert fields from server ── */
+        async function autoGenerateEstampFields() {
+            // Set date immediately
+            document.getElementById('esCertDate').value = getCurrentEstampDateTime();
+
+            try {
+                const resp = await fetch('/api/estamp/auto-generate');
+                const data = await resp.json();
+                if (data.success) {
+                    document.getElementById('esCertNo').value = data.certNo;
+                    document.getElementById('esAccRef').value = data.accRef;
+                    document.getElementById('esUniqueDocRef').value = data.uniqueDocRef;
+                    _autoGenerated = true;
+                } else {
+                    console.error('Auto-generate failed:', data.message);
+                }
+            } catch (err) {
+                console.error('Auto-generate error:', err);
+            }
+        }
+
+        /* ── Load records from server ── */
+        async function loadEstampRecords() {
+            try {
+                const resp = await fetch('/api/estamp/records');
+                const data = await resp.json();
+                if (data.success) {
+                    _estampRecords = data.records;
+                } else {
+                    _estampRecords = [];
+                }
+            } catch (err) {
+                _estampRecords = [];
+            }
+            renderEstampRecords();
+        }
+
+        /* ── Get/Set form ── */
+        function getEstampFormData() {
+            const v = id => (document.getElementById(id)?.value || '');
+            return {
+                certNo: v('esCertNo'), certDate: v('esCertDate'), accRef: v('esAccRef'),
+                uniqueDocRef: v('esUniqueDocRef'), purchasedBy: v('esPurchasedBy'),
+                docDesc: v('esDocDesc'), propDesc: v('esPropDesc'), considerPrice: v('esConsiderPrice'),
+                firstParty: v('esFirstParty'), secondParty: v('esSecondParty'),
+                stampPaidBy: v('esStampPaidBy'), stampDuty: v('esStampDuty'),
+                amountWords: v('esAmountWords'), considerWords: v('esConsiderWords'),
+            };
+        }
+
+        function setEstampFormData(d) {
+            const map = {
+                esCertNo: 'certNo', esCertDate: 'certDate', esAccRef: 'accRef',
+                esUniqueDocRef: 'uniqueDocRef', esPurchasedBy: 'purchasedBy',
+                esDocDesc: 'docDesc', esPropDesc: 'propDesc', esConsiderPrice: 'considerPrice',
+                esFirstParty: 'firstParty', esSecondParty: 'secondParty',
+                esStampPaidBy: 'stampPaidBy', esStampDuty: 'stampDuty',
+                esAmountWords: 'amountWords', esConsiderWords: 'considerWords',
+            };
+            Object.entries(map).forEach(([elId, key]) => {
+                const el = document.getElementById(elId);
+                if (el) el.value = d[key] || '';
+            });
+        }
+
+        /* ── Save (POST or PUT) ── */
+        async function saveEstampRecord() {
+            const data = getEstampFormData();
+            if (!data.purchasedBy.trim()) {
+                showToast('Warning', 'Please enter "Purchased By" name.', 'warning');
+                return;
+            }
+
+            const editId = document.getElementById('estampEditId')?.value;
+            const url = editId ? `/api/estamp/records/${editId}` : '/api/estamp/records';
+            const method = editId ? 'PUT' : 'POST';
+
+            try {
+                const resp = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await resp.json();
+
+                if (result.success) {
+                    showToast(editId ? 'Updated' : 'Saved', result.message, 'success');
+                    _autoGenerated = false;
+                    resetEstampForm();
+                    switchEstampTab('records');
+                } else {
+                    showToast('Error', result.message || 'Failed to save.', 'danger');
+                }
+            } catch (err) {
+                showToast('Error', 'Network error. Please try again.', 'danger');
+            }
+        }
+
+        /* ── Reset form and auto-generate new fields ── */
+        function resetEstampForm() {
+            // Clear party fields
+            document.getElementById('esPurchasedBy').value = '';
+            document.getElementById('esFirstParty').value = '';
+            document.getElementById('esStampPaidBy').value = '';
+            document.getElementById('esSecondParty').value = 'NA';
+
+            // Reset document/amount fields to defaults
+            document.getElementById('esDocDesc').value = 'Article 4 - Affidavit';
+            document.getElementById('esPropDesc').value = 'AFFIDAVIT';
+            document.getElementById('esConsiderPrice').value = '0';
+            document.getElementById('esStampDuty').value = '100';
+            document.getElementById('esAmountWords').value = '(One Hundred Only)';
+            document.getElementById('esConsiderWords').value = '(Zero)';
+
+            // Clear edit mode
+            document.getElementById('estampEditId').value = '';
+            document.getElementById('estampSaveBtnText').textContent = 'Save Certificate';
+
+            // Auto-generate cert fields from server
+            _autoGenerated = false;
+            autoGenerateEstampFields();
+        }
+
+        /* ── Render records ── */
+        function renderEstampRecords() {
+            const tbody = document.getElementById('estampRecordsBody');
+            const empty = document.getElementById('estampEmptyState');
+            const cnt = document.getElementById('estampRecordCount');
+            if (!tbody) return;
+            if (cnt) cnt.textContent = _estampRecords.length;
+            if (!_estampRecords.length) { tbody.innerHTML = ''; if (empty) empty.style.display = ''; return; }
+            if (empty) empty.style.display = 'none';
+            const q = (document.getElementById('estampSearchInput')?.value || '').trim().toLowerCase();
+            let list = _estampRecords;
+            if (q) list = list.filter(r =>
+                (r.purchasedBy || '').toLowerCase().includes(q) ||
+                (r.certNo || '').toLowerCase().includes(q) ||
+                (r.firstParty || '').toLowerCase().includes(q)
+            );
+            tbody.innerHTML = list.map((r, i) => `<tr>
+        <td>${i + 1}</td>
+        <td style="font-weight:600; font-size:.82rem;">${escapeHtml(r.certNo || '—')}</td>
+        <td>${escapeHtml(r.purchasedBy || '—')}</td>
+        <td>${escapeHtml(r.docDesc || '—')}</td>
+        <td><strong>₹${escapeHtml(r.stampDuty || '0')}</strong></td>
+        <td style="font-size:.8rem; color:var(--ink-muted);">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+        <td>
+            <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-outline-primary" onclick="viewEstampRecord('${r.id}')" title="View"><i class="bi bi-eye"></i></button>
+                <button class="btn btn-sm btn-outline-success" onclick="printEstampRecord('${r.id}')" title="Print"><i class="bi bi-printer"></i></button>
+                <button class="btn btn-sm btn-outline-warning" onclick="editEstampRecord('${r.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteEstampRecord('${r.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+            </div>
+        </td>
+    </tr>`).join('');
+        }
+
+        function filterEstampRecords() { renderEstampRecords(); }
+
+        /* ── Edit ── */
+        function editEstampRecord(id) {
+            const r = _estampRecords.find(x => x.id === id); if (!r) return;
+            setEstampFormData(r);
+            document.getElementById('estampEditId').value = id;
+            document.getElementById('estampSaveBtnText').textContent = 'Update Certificate';
+            _autoGenerated = false; // don't auto-generate on edit
+            switchEstampTab('new');
+            // Override: don't auto-generate when editing — keep existing values
+            setTimeout(() => setEstampFormData(r), 50);
+        }
+
+        /* ── Delete ── */
+        async function deleteEstampRecord(id) {
+            if (!confirm('Delete this e-Stamp record?')) return;
+            try {
+                const resp = await fetch(`/api/estamp/records/${id}`, { method: 'DELETE' });
+                const result = await resp.json();
+                if (result.success) {
+                    _estampRecords = _estampRecords.filter(r => r.id !== id);
+                    renderEstampRecords();
+                    showToast('Deleted', 'Record deleted.', 'info');
+                } else {
+                    showToast('Error', result.message || 'Failed to delete.', 'danger');
+                }
+            } catch (err) {
+                showToast('Error', 'Network error.', 'danger');
+            }
+        }
+
+        /* ── Populate hidden cert template ── */
+        function populateCertTemplate(d) {
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ''; };
+            set('es_certNo', d.certNo); set('es_certDate', d.certDate);
+            set('es_accRef', d.accRef); set('es_uniqueDocRef', d.uniqueDocRef);
+            set('es_purchasedBy', d.purchasedBy); set('es_docDesc', d.docDesc);
+            set('es_propDesc', d.propDesc); set('es_considerPrice', d.considerPrice);
+            set('es_firstParty', d.firstParty); set('es_secondParty', d.secondParty);
+            set('es_stampPaidBy', d.stampPaidBy); set('es_stampDuty', d.stampDuty);
+            set('es_amountWords', d.amountWords); set('es_considerWords', d.considerWords);
+            set('es_stampDutyTop', 'Rs.' + (d.stampDuty || '100'));
+            set('es_stamp_purchasedBy', d.purchasedBy);
+            set('es_stamp_certNo', d.certNo);
+            set('es_stamp_certDate', d.certDate);
+            set('es_stamp_amount', 'RS: ' + (d.stampDuty || '100'));
+            const bgEl = document.getElementById('esBgText');
+            if (bgEl) {
+                const name = d.purchasedBy || 'AYRA SERVICES';
+                const line = (name + ' ').repeat(25).trim();
+                const lines = []; for (let i = 0; i < 60; i++) lines.push(line + '  ' + name);
+                bgEl.textContent = lines.join('\n');
+            }
+        }
+
+        /* ── Build print HTML ── */
+        function buildCertPrintHTML(d) {
+            const name = d.purchasedBy || 'AYRA SERVICES';
+            const line = (name + ' ').repeat(25).trim();
+            const bgLines = []; for (let i = 0; i < 60; i++) bgLines.push(line + '  ' + name);
+            const bgText = bgLines.join('\n');
+            const amt = d.stampDuty || '100';
+
+            return `<!DOCTYPE html><html><head><title>e-Stamp Certificate</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:0;display:flex;justify-content:center}
+.a4-sheet{width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff}
+.bg-text{position:absolute;inset:0;z-index:1;opacity:.1;font-size:11px;color:#000;line-height:1.6em;white-space:pre;font-weight:bold;padding:12px;font-family:Arial,sans-serif}
+.content-box{width:210mm;height:297mm;position:relative;z-index:2;font-size:14px;color:#000;font-family:Arial,sans-serif;background:url("{{ url_for('static', filename='images/bond_bg.png') }}")no-repeat center center;background-size:cover;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.ct{position:absolute;font-size:13px;color:#222325;line-height:1;font-family:Arial,sans-serif}
+.outer-circle{width:111px;height:100px;border-radius:100%;display:flex;justify-content:center;align-items:center;background-color:#fff;position:absolute;top:175mm;left:158mm}
+.inner-circle{width:140px;height:140px;display:flex;justify-content:center;align-items:center}
+.outer-circle svg{width:150px;height:150px}
+.textArcTop,.textArcMiddle,.textArcBottom{font-size:12px;fill:#d5d1d1;font-weight:bold;letter-spacing:.5px;dominant-baseline:middle}
+.centerText{font-size:17px;fill:#d5d1d1;font-weight:bold}
+.crosshair{position:absolute;width:30mm;height:30mm;z-index:5}
+@page{size:A4;margin:0}
+</style></head><body>
+<div class="a4-sheet">
+<div class="bg-text">${escapeHtml(bgText)}</div>
+<div class="content-box">
+<div class="ct" style="top:74.5mm;left:21mm;font-weight:bold">Certificate No</div>
+<div class="ct" style="top:74.5mm;left:85mm;font-weight:bold">${escapeHtml(d.certNo)}</div>
+<div class="ct" style="top:80.2mm;left:21mm">Certificate Issued Date</div>
+<div class="ct" style="top:80.2mm;left:85mm">${escapeHtml(d.certDate)}</div>
+<div class="ct" style="top:85.9mm;left:21mm">Account Reference</div>
+<div class="ct" style="top:85.9mm;left:85mm">${escapeHtml(d.accRef)}</div>
+<div class="ct" style="top:91.6mm;left:21mm">Unique Doc Reference</div>
+<div class="ct" style="top:91.6mm;left:85mm">${escapeHtml(d.uniqueDocRef)}</div>
+<div class="ct" style="top:97.3mm;left:21mm">Purchased by</div>
+<div class="ct" style="top:97.3mm;left:85mm">${escapeHtml(d.purchasedBy)}</div>
+<div class="ct" style="top:103mm;left:21mm">Description of Document</div>
+<div class="ct" style="top:103mm;left:85mm">${escapeHtml(d.docDesc)}</div>
+<div class="ct" style="top:108.7mm;left:21mm">Property Description</div>
+<div class="ct" style="top:108.7mm;left:85mm">${escapeHtml(d.propDesc)}</div>
+<div class="ct" style="top:114.4mm;left:21mm">Consideration Price (Rs.)</div>
+<div class="ct" style="top:114.4mm;left:85mm">${escapeHtml(d.considerPrice)}</div>
+<div class="ct" style="top:117.5mm;left:87mm">${escapeHtml(d.considerWords)}</div>
+<div class="ct" style="top:122.9mm;left:21mm">First Party</div>
+<div class="ct" style="top:122.9mm;left:85mm">${escapeHtml(d.firstParty)}</div>
+<div class="ct" style="top:128.6mm;left:21mm">Second Party</div>
+<div class="ct" style="top:128.6mm;left:85mm">${escapeHtml(d.secondParty)}</div>
+<div class="ct" style="top:134.3mm;left:21mm">Stamp Paid By</div>
+<div class="ct" style="top:134.3mm;left:85mm">${escapeHtml(d.stampPaidBy)}</div>
+<div class="ct" style="top:140mm;left:21mm">Stamp Duty Amount (Rs.)</div>
+<div class="ct" style="top:140mm;left:85mm">${escapeHtml(amt)}</div>
+<div class="ct" style="top:144.5mm;left:86mm">${escapeHtml(d.amountWords)}</div>
+<div class="ct" style="top:51.5mm;left:171mm;font-size:20px;color:#d5d1d1;font-weight:bold">Rs.${escapeHtml(amt)}</div>
+<div class="outer-circle"><div class="inner-circle">
+<svg viewBox="0 0 200 200">
+<circle cx="100" cy="100" r="85" stroke="#d5d1d1" stroke-width="4" fill="none"/>
+<circle cx="100" cy="100" r="60" stroke="#d5d1d1" stroke-width="1.5" fill="none"/>
+<defs>
+<path id="pAT" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/>
+<path id="pAM" d="M100,100 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0"/>
+<path id="pAB" d="M100,100 m52,0 a52,52 0 1,0 -104,0 a52,52 0 1,0 104,0"/>
+</defs>
+<text dy="7"><textPath href="#pAT" startOffset="26%" text-anchor="middle" class="textArcTop">${escapeHtml(d.purchasedBy)}</textPath></text>
+<text dy="1"><textPath href="#pAM" startOffset="26%" text-anchor="middle" class="textArcMiddle">${escapeHtml(d.certNo)}</textPath></text>
+<text dy="1"><textPath href="#pAB" startOffset="75%" text-anchor="middle" class="textArcBottom">${escapeHtml(d.certDate)}</textPath></text>
+<text x="100" y="106" class="centerText" text-anchor="middle">RS: ${escapeHtml(amt)}</text>
+</svg></div></div>
+<div class="crosshair" style="top:157mm;left:58.5mm"><svg viewBox="0 0 100 100" style="width:60%;height:97%"><circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"/><line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"/><line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"/></svg></div>
+<div class="crosshair" style="top:186mm;left:137mm"><svg viewBox="0 0 100 100" style="width:60%;height:97%"><circle cx="50" cy="50" r="20" stroke="black" stroke-width="1" fill="none"/><line x1="10" y1="50" x2="88" y2="50" stroke="black" stroke-width="1"/><line x1="50" y1="10" x2="50" y2="88" stroke="black" stroke-width="1"/></svg></div>
+</div></div>
+<script>window.onload=function(){window.print()}<\/script>
+</body></html>`;
+        }
+
+        /* ── View record ── */
+        function viewEstampRecord(id) {
+            const r = _estampRecords.find(x => x.id === id); if (!r) return;
+            populateCertTemplate(r);
+            const tpl = document.getElementById('estampCertTemplate');
+            const clone = tpl.cloneNode(true);
+            clone.style.position = 'static';
+            clone.style.left = '0';
+            clone.removeAttribute('id');
+            const body = document.getElementById('estampViewModalBody');
+            body.innerHTML = '';
+            const w = document.createElement('div');
+            w.style.cssText = 'display:flex;justify-content:center;overflow:auto;padding:1rem 0;';
+            w.appendChild(clone);
+            body.appendChild(w);
+            document.getElementById('estampViewPrintBtn').onclick = () => {
+                const pw = window.open('', '_blank');
+                pw.document.write(buildCertPrintHTML(r));
+                pw.document.close();
+            };
+            new bootstrap.Modal(document.getElementById('estampViewModal')).show();
+        }
+
+        /* ── Print record ── */
+        function printEstampRecord(id) {
+            const r = _estampRecords.find(x => x.id === id); if (!r) return;
+            const pw = window.open('', '_blank');
+            pw.document.write(buildCertPrintHTML(r));
+            pw.document.close();
+        }
+
+        /* ── Init ── */
+        document.addEventListener('DOMContentLoaded', function () {
+            renderEstampRecords();
+        });
+
+        /* ================================================================
+           PRINT PROGRESS (unchanged logic)
+        ================================================================ */
+        let _printModal = null, _currentPrintDocId = null, _currentPdfUrl = null, _printAbortController = null;
+
+        function showPrintProgress(docId) {
+            _currentPrintDocId = docId; _currentPdfUrl = null; _printAbortController = null;
+            activePrintJobs[docId] = null; resetPrintModal();
+            if (!_printModal) _printModal = new bootstrap.Modal(document.getElementById('printProgressModal'));
+            _printModal.show(); startPrintJob(docId);
+        }
+        function resetPrintModal() {
+            setProgressBar(0);
+            document.getElementById('printProgressTitle').textContent = 'Generating PDF…';
+            document.getElementById('printProgressSubtitle').textContent = 'Please wait';
+            document.getElementById('printStepLog').innerHTML = '';
+            ['printDoneActions', 'printErrorActions', 'printCancelledActions'].forEach(id => document.getElementById(id).classList.add('d-none'));
+            const c = document.getElementById('printCancelHeaderBtn');
+            if (c) { c.classList.remove('d-none'); c.disabled = false; c.innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancel'; }
+        }
+        function closePrintProgress() { if (_printModal) _printModal.hide(); if (_currentPrintDocId) delete activePrintJobs[_currentPrintDocId]; }
+
+        async function cancelCurrentPrintJob() {
+            const docId = _currentPrintDocId;
+            if (!docId) return;
+            const jobId = activePrintJobs[docId];
+            const c = document.getElementById('printCancelHeaderBtn');
+            if (c) { c.disabled = true; c.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Cancelling…'; }
+            addStep('info', 'Cancellation requested…');
+            if (_printAbortController) _printAbortController.abort();
+
+            if (jobId) {
+                const cancelUrl = String(docId).startsWith('AF')
+                    ? `/api/affidavits/${docId}/cancel-print`
+                    : `/api/admin/documents/${docId}/cancel-print`;
+                try {
+                    await fetch(cancelUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ job_id: jobId })
+                    });
+                } catch (_) { }
+            }
+            showCancelledState();
+        }
+
+
+        function showCancelledState() {
+            setProgressBar(100, false, '#f59e0b');
+            document.getElementById('printProgressTitle').textContent = 'Cancelled';
+            document.getElementById('printProgressSubtitle').textContent = 'Print job cancelled.';
+            const c = document.getElementById('printCancelHeaderBtn'); if (c) c.classList.add('d-none');
+            document.getElementById('printDoneActions').classList.add('d-none');
+            document.getElementById('printErrorActions').classList.add('d-none');
+            document.getElementById('printCancelledActions').classList.remove('d-none');
+            document.getElementById('retryCancelledBtn').onclick = () => { resetPrintModal(); startPrintJob(_currentPrintDocId); };
+            if (_currentPrintDocId) delete activePrintJobs[_currentPrintDocId];
+        }
+
+
+        async function startPrintJob(docId) {
+            const isAffidavit = docId && String(docId).startsWith('AF');
+            const pdfUrl = isAffidavit
+                ? `/api/affidavits/${docId}/print-pdf`
+                : `/api/admin/documents/${docId}/print-pdf`;
+
+            _printAbortController = new AbortController();
+            let fileList = [];
+
+            if (!isAffidavit) {
+                try {
+                    const r = await fetch(`/api/admin/documents/${docId}/print-preview`);
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (d.success && d.documents) fileList = d.documents.map(x => x.filename);
+                    }
+                } catch (_) { }
+            }
+
+            const pdfP = fetchPdfBlob(pdfUrl, _printAbortController.signal);
+            if (fileList.length) await animateFileSteps(fileList); else await animateGenericProgress();
+            if (_printAbortController.signal.aborted) return;
+
+            addStep('info', 'Finalising…');
+            setProgressBar(95);
+            let blob;
+            try {
+                blob = await pdfP;
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+                showPrintError(e.message || 'Failed');
+                return;
+            }
+            if (_printAbortController.signal.aborted) return;
+
+            setProgressBar(100);
+            addStep('success', 'PDF ready ✓');
+            const c = document.getElementById('printCancelHeaderBtn');
+            if (c) c.classList.add('d-none');
+
+            _currentPdfUrl = URL.createObjectURL(blob);
+            document.getElementById('printProgressTitle').textContent = 'PDF Ready';
+            document.getElementById('printProgressSubtitle').textContent = 'Generated successfully';
+            document.getElementById('openPdfBtn').onclick = () => window.open(_currentPdfUrl, '_blank');
+            document.getElementById('printDoneActions').classList.remove('d-none');
+            delete activePrintJobs[docId];
+            setTimeout(() => window.open(_currentPdfUrl, '_blank'), 600);
+        }
+
+
+        async function fetchPdfBlob(url, signal) {
+            const r = await fetch(url, { signal });
+            if (!r.ok) { const j = r.headers.get('X-Print-Job-Id'); if (j && _currentPrintDocId) activePrintJobs[_currentPrintDocId] = j; let m = `Error ${r.status}`; try { const d = await r.json(); m = d.message || m; } catch (_) { } throw new Error(m); }
+            const j = r.headers.get('X-Print-Job-Id'); if (j && _currentPrintDocId) activePrintJobs[_currentPrintDocId] = j;
+            return r.blob();
+        }
+
+        async function animateFileSteps(fl) {
+            const p = 80 / fl.length;
+            for (let i = 0; i < fl.length; i++) {
+                if (_printAbortController?.signal.aborted) return;
+                addStep('working', `Filling <strong>${escapeHtml(fl[i])}</strong>…`); setProgressBar(Math.round(p * i + p * 0.3)); await sleep(180 + Math.random() * 120);
+                if (_printAbortController?.signal.aborted) return;
+                addStep('working', `Converting <strong>${escapeHtml(fl[i])}</strong> → PDF…`); setProgressBar(Math.round(p * i + p * 0.7)); await sleep(300 + Math.random() * 200);
+                if (_printAbortController?.signal.aborted) return;
+                const s = fl[i].toUpperCase().includes('WITNESS') ? ' <span style="color:#d97706">(×2)</span>' : '';
+                addStep('success', `<strong>${escapeHtml(fl[i])}</strong> → PDF ✓${s}`); setProgressBar(Math.round(p * (i + 1))); await sleep(80);
+            }
+        }
+
+        async function animateGenericProgress() {
+            for (const s of [{ p: 15, m: 'Loading…' }, { p: 35, m: 'Filling…' }, { p: 55, m: 'Converting…' }, { p: 75, m: 'Generating…' }]) {
+                if (_printAbortController?.signal.aborted) return;
+                addStep('working', s.m); setProgressBar(s.p); await sleep(400 + Math.random() * 300);
+            }
+        }
+
+        function showPrintError(msg) {
+            setProgressBar(100, true); addStep('error', `Error: ${msg}`);
+            document.getElementById('printProgressTitle').textContent = 'Failed';
+            document.getElementById('printProgressSubtitle').textContent = 'Try again.';
+            const c = document.getElementById('printCancelHeaderBtn'); if (c) c.classList.add('d-none');
+            ['printDoneActions', 'printCancelledActions'].forEach(id => document.getElementById(id).classList.add('d-none'));
+            document.getElementById('printErrorActions').classList.remove('d-none');
+            document.getElementById('retryPrintBtn').onclick = () => { resetPrintModal(); startPrintJob(_currentPrintDocId); };
+            if (_currentPrintDocId) delete activePrintJobs[_currentPrintDocId];
+        }
+
+        function setProgressBar(pct, err = false, clr = null) {
+            const b = document.getElementById('printProgressBar'), p = document.getElementById('printProgressPct');
+            if (!b) return; const c = Math.min(100, Math.max(0, pct));
+            b.style.width = c + '%'; b.style.background = clr || (err ? '#dc2626' : 'var(--ink)');
+            if (p) p.textContent = c + '%';
+        }
+
+        function addStep(type, html) {
+            const log = document.getElementById('printStepLog'); if (!log) return;
+            const icons = { working: '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--ink-muted);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:.4rem"></span>', success: '<i class="bi bi-check-circle-fill" style="color:#16a34a;margin-right:.4rem"></i>', info: '<i class="bi bi-arrow-right-circle" style="color:var(--ink-muted);margin-right:.4rem"></i>', error: '<i class="bi bi-x-circle-fill" style="color:#dc2626;margin-right:.4rem"></i>' };
+            const colors = { working: 'var(--ink-soft)', success: '#15803d', info: 'var(--ink-muted)', error: '#dc2626' };
+            const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const line = document.createElement('div');
+            line.style.cssText = `display:flex;align-items:center;gap:.25rem;padding:.2rem 0;color:${colors[type] || 'var(--ink-soft)'};border-bottom:1px solid var(--rule-soft);animation:fadeIn .2s ease`;
+            line.innerHTML = `<span style="color:var(--ink-faint);font-size:.7rem;white-space:nowrap;flex-shrink:0">${ts}</span>${icons[type] || ''}<span style="font-size:.8125rem;line-height:1.4">${html}</span>`;
+            log.appendChild(line);
+            log.querySelectorAll('span[style*="border-top-color:transparent"]').forEach((el, i, a) => { if (i < a.length - 1) { el.style.animation = 'none'; el.style.borderColor = 'var(--rule)'; } });
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        const _ss = document.createElement('style');
+        _ss.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}';
+        document.head.appendChild(_ss);
+    </script>
+
+</body>
+
+</html>
