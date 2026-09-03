@@ -7,7 +7,7 @@ from pathlib import Path
 from models import db, init_db
 from routes.estamp import estamp_bp
 from routes.affidavit import affidavit_bp
-from config import AFFIDAVIT_CONFIG
+from config import TEMPLATE_CONFIG, AFFIDAVIT_CONFIG
 from config import (
     TEMPLATE_CONFIG,
     SQLALCHEMY_DATABASE_URI
@@ -31,17 +31,18 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 # ── Initialize database ──────────────────────────────────────────────────────
 init_db(app)
 
-# Auto-generate dynamic template folders at startup (Insert right after SQLALCHEMY_DATABASE_URI loops)
-for aff_key, aff_info in AFFIDAVIT_CONFIG.items():
-    Path(aff_info['folder']).mkdir(parents=True, exist_ok=True)
 
-
-# ── Create template folders if not exist ────────────────────────────────────
+# Name change template folders
 for template_key, template_info in TEMPLATE_CONFIG.items():
-    Path(template_info['folder']).mkdir(parents=True, exist_ok=True)
-    if 'unmarried_subfolder' in template_info:
-        Path(template_info['unmarried_subfolder']).mkdir(parents=True, exist_ok=True)
+    if isinstance(template_info, dict) and 'folder' in template_info:
+        Path(template_info['folder']).mkdir(parents=True, exist_ok=True)
+        if 'unmarried_subfolder' in template_info:
+            Path(template_info['unmarried_subfolder']).mkdir(parents=True, exist_ok=True)
 
+# Affidavit template folders
+for aff_key, aff_info in AFFIDAVIT_CONFIG.items():
+    if isinstance(aff_info, dict) and 'folder' in aff_info:
+        Path(aff_info['folder']).mkdir(parents=True, exist_ok=True)
 
 # ── Font setup ───────────────────────────────────────────────────────────────
 def setup_fonts_on_startup():
