@@ -314,11 +314,13 @@ AFFIDAVIT_CONFIG = {
         'file': 'minor.docx',
         'icon': 'bi-credit-card-2-front',
         'fields': [
-            {'id': 'UPDATE_NAME', 'label': 'Parent / Guardian Name', 'type': 'text', 'required': True},
-            {'id': 'UPDATE_RELATION', 'label': 'Relationship', 'type': 'select', 'required': True,
+            {'id': 'UPDATE_NAME', 'label': 'Parent / Guardian Name', 'type': 'text', 'required': True, 'row': 1},
+            {'id': 'UPDATE_RELATION', 'label': 'Relationship', 'type': 'select', 'required': True, 'row': 1,
              'options': [{'value': 'S/o', 'label': 'S/o (Son of)'}, {'value': 'D/o', 'label': 'D/o (Daughter of)'}, {'value': 'W/o', 'label': 'W/o (Wife of)'}]},
-            {'id': 'FATHER-SPOUSE_NAME', 'label': 'Father / Husband Name', 'type': 'text', 'required': True},
+            {'id': 'FATHER-SPOUSE_NAME', 'label': 'Father / Husband Name', 'type': 'text', 'required': True, 'row': 1},
             {'id': 'UPDATE_ADDRESS', 'label': 'Current Address', 'type': 'textarea', 'required': True},
+            {'id': 'CHILD_NAME', 'label': 'Child Name', 'type': 'text', 'required': True, 'row': 2},
+            {'id': 'CHILD_DOB', 'label': 'Child DOB', 'type': 'date', 'required': True, 'row': 2},
             {'id': 'AADHAAR_NUMBER', 'label': 'Aadhaar Number (Child)', 'type': 'text', 'required': True, 'maxlength': 12},
             {'id': 'EID_NUMBER', 'label': 'EID Number (Optional)', 'type': 'text', 'required': False},
             {'id': 'NUM_DATE', 'label': 'Numeric Date', 'type': 'date', 'required': True}
@@ -368,7 +370,7 @@ AFFIDAVIT_CONFIG = {
         ]
     },
 
-    # ── Passport Name Change ──
+    # ── Passport Name Change - ADULT  ──
     'passport_name_change_adult': {
         'name': 'Passport Name Change - Adult',
         'category': 'Passport Name Change',
@@ -378,17 +380,19 @@ AFFIDAVIT_CONFIG = {
         'file': 'adult.docx',
         'icon': 'bi-passport',
         'fields': [
-            {'id': 'OLD_NAME', 'label': 'Old Name', 'type': 'text', 'required': True},
-            {'id': 'NEW_NAME', 'label': 'New Name', 'type': 'text', 'required': True},
-            {'id': 'UPDATE_NAME', 'label': 'Deponent Name (Current)', 'type': 'text', 'required': True},
-            {'id': 'UPDATE_RELATION', 'label': 'Relationship', 'type': 'select', 'required': True,
+            {'id': 'OLD_NAME', 'label': 'Old Name', 'type': 'text', 'required': True, 'row': 1},
+            {'id': 'NEW_NAME', 'label': 'New Name', 'type': 'text', 'required': True, 'row': 1},
+            {'id': 'UPDATE_AGE', 'label': 'Age or DOB (DD/MM/YYYY)', 'type': 'age_direct_or_dob', 'required': True, 'row': 2},
+            {'id': 'UPDATE_RELATION', 'label': 'Relationship', 'type': 'select', 'required': True, 'row': 3,
              'options': [{'value': 'S/o', 'label': 'S/o (Son of)'}, {'value': 'D/o', 'label': 'D/o (Daughter of)'}, {'value': 'W/o', 'label': 'W/o (Wife of)'}]},
-            {'id': 'FATHER-SPOUSE_NAME', 'label': 'Father / Husband Name', 'type': 'text', 'required': True},
+            {'id': 'FATHER-SPOUSE_NAME', 'label': 'Father / Husband Name', 'type': 'text', 'required': True, 'row': 3},
             {'id': 'UPDATE_ADDRESS', 'label': 'Current Address', 'type': 'textarea', 'required': True},
-            {'id': 'NUM_DATE', 'label': 'Numeric Date', 'type': 'date', 'required': True},
-            {'id': 'ALPHA_DATE', 'label': 'Alphabetic Date', 'type': 'text', 'required': True, 'placeholder': 'e.g. 15TH DAY OF AUGUST 2026'}
+            {'id': 'NUM_DATE', 'label': 'Numeric Date', 'type': 'date_auto_alpha', 'required': True},
+            {'id': 'ALPHA_DATE', 'label': 'Alphabetic Date (Auto)', 'type': 'text_readonly', 'required': False}
         ]
     },
+    
+    # ── Passport Name Change - MINOR ──
     'passport_name_change_minor': {
         'name': 'Passport Name Change - Minor',
         'category': 'Passport Name Change',
@@ -398,18 +402,56 @@ AFFIDAVIT_CONFIG = {
         'file': 'minor.docx',
         'icon': 'bi-passport',
         'fields': [
-            {'id': 'OLD_NAME', 'label': 'Child Old Name', 'type': 'text', 'required': True},
-            {'id': 'NEW_NAME', 'label': 'Child New Name', 'type': 'text', 'required': True},
-            {'id': 'CHILD_NAME', 'label': 'Child Current Name', 'type': 'text', 'required': True},
-            {'id': 'CHILD_DOB', 'label': 'Child DOB', 'type': 'date', 'required': True},
-            {'id': 'UPDATE_AGE', 'label': 'Child Age (Years)', 'type': 'number', 'required': True},
-            {'id': 'UPDATE_NAME', 'label': 'Parent Name (Deponent)', 'type': 'text', 'required': True},
-            {'id': 'UPDATE_RELATION', 'label': 'Relationship', 'type': 'select', 'required': True,
+            # ── Guardian Details ──
+            {'id': 'UPDATE_NAME', 'label': 'Guardian Name', 'type': 'text', 'required': True, 'row': 1, 'section': 'Guardian Details'},
+            {'id': 'UPDATE_RELATION', 'label': 'Relationship', 'type': 'select', 'required': True, 'row': 1, 'section': 'Guardian Details',
              'options': [{'value': 'S/o', 'label': 'S/o (Son of)'}, {'value': 'D/o', 'label': 'D/o (Daughter of)'}, {'value': 'W/o', 'label': 'W/o (Wife of)'}]},
-            {'id': 'FATHER-SPOUSE_NAME', 'label': 'Father / Husband Name', 'type': 'text', 'required': True},
-            {'id': 'UPDATE_ADDRESS', 'label': 'Current Address', 'type': 'textarea', 'required': True},
-            {'id': 'NUM_DATE', 'label': 'Numeric Date', 'type': 'date', 'required': True},
-            {'id': 'ALPHA_DATE', 'label': 'Alphabetic Date', 'type': 'text', 'required': True, 'placeholder': 'e.g. 15TH DAY OF AUGUST 2026'}
+            {'id': 'FATHER-SPOUSE_NAME', 'label': 'Father / Husband Name', 'type': 'text', 'required': True, 'row': 1, 'section': 'Guardian Details'},
+            {'id': 'UPDATE_ADDRESS', 'label': 'Current Address', 'type': 'textarea', 'required': True, 'section': 'Guardian Details'},
+
+            # ── Child Details (Pronouns Hidden from Form) ──
+            {'id': 'SON-DAUGHTER', 'label': 'Son / Daughter', 'type': 'select_pronoun', 'required': True, 'row': 2, 'section': 'Child Details',
+             'options': [{'value': 'son', 'label': 'Son'}, {'value': 'daughter', 'label': 'Daughter'}]},
+            {'id': 'OLD_NAME', 'label': 'Child Old Name', 'type': 'text', 'required': True, 'row': 2, 'section': 'Child Details'},
+            {'id': 'NEW_NAME', 'label': 'Child New Name', 'type': 'text', 'required': True, 'row': 2, 'section': 'Child Details'},
+            {'id': 'CHILD_DOB', 'label': 'Child DOB', 'type': 'date', 'required': True, 'row': 3, 'section': 'Child Details'},
+            {'id': 'UPDATE_AGE', 'label': 'Age', 'type': 'text_readonly', 'required': True, 'row': 3, 'section': 'Child Details'},
+
+            # ── Date Section ──
+            {'id': 'NUM_DATE', 'label': 'Numeric Date', 'type': 'date_auto_alpha', 'required': True},
+            {'id': 'ALPHA_DATE', 'label': 'Alphabetic Date (Auto)', 'type': 'text_readonly', 'required': False}
+        ]
+    },
+
+    'passport_name_change_minor': {
+        'name': 'Passport Name Change - Minor',
+        'category': 'Passport Name Change',
+        'category_key': 'passport_name_change',
+        'variant': 'minor',
+        'folder': 'affidavit_templates/passport_name_change',
+        'file': 'minor.docx',
+        'icon': 'bi-passport',
+        'fields': [
+            # ── Guardian Details ──
+            {'id': 'UPDATE_NAME', 'label': 'Guardian Name', 'type': 'text', 'required': True, 'row': 1, 'section': 'Guardian Details'},
+            {'id': 'UPDATE_RELATION', 'label': 'Relationship', 'type': 'select', 'required': True, 'row': 1, 'section': 'Guardian Details',
+             'options': [{'value': 'S/o', 'label': 'S/o (Son of)'}, {'value': 'D/o', 'label': 'D/o (Daughter of)'}, {'value': 'W/o', 'label': 'W/o (Wife of)'}]},
+            {'id': 'FATHER-SPOUSE_NAME', 'label': 'Father / Husband Name', 'type': 'text', 'required': True, 'row': 1, 'section': 'Guardian Details'},
+            {'id': 'UPDATE_ADDRESS', 'label': 'Current Address', 'type': 'textarea', 'required': True, 'section': 'Guardian Details'},
+
+            # ── Child Details (Simplified layout) ──
+            {'id': 'SON-DAUGHTER', 'label': 'Son / Daughter', 'type': 'select_pronoun', 'required': True, 'row': 2, 'section': 'Child Details',
+             'options': [{'value': 'son', 'label': 'Son'}, {'value': 'daughter', 'label': 'Daughter'}]},
+            {'id': 'OLD_NAME', 'label': 'Child Old Name', 'type': 'text', 'required': True, 'row': 2, 'section': 'Child Details'},
+            {'id': 'NEW_NAME', 'label': 'Child New Name', 'type': 'text', 'required': True, 'row': 2, 'section': 'Child Details'},
+            {'id': 'CHILD_DOB', 'label': 'Child DOB', 'type': 'date', 'required': True, 'row': 3, 'section': 'Child Details'},
+            {'id': 'UPDATE_AGE', 'label': 'Age', 'type': 'text_readonly', 'required': True, 'row': 3, 'section': 'Child Details'},
+            {'id': 'HE_SHE', 'label': 'He / She', 'type': 'text_readonly', 'required': False, 'row': 4, 'section': 'Child Details'},
+            {'id': 'HIS_HER', 'label': 'His / Her', 'type': 'text_readonly', 'required': False, 'row': 4, 'section': 'Child Details'},
+
+            # ── Date Section ──
+            {'id': 'NUM_DATE', 'label': 'Numeric Date', 'type': 'date_auto_alpha', 'required': True},
+            {'id': 'ALPHA_DATE', 'label': 'Alphabetic Date (Auto)', 'type': 'text_readonly', 'required': False}
         ]
     },
 
@@ -431,7 +473,6 @@ AFFIDAVIT_CONFIG = {
         ]
     },
 }
-
 
 # Relation mapping
 RELATION_MAPPING = {
