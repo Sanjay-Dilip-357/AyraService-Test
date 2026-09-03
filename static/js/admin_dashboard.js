@@ -2537,7 +2537,6 @@ function updateEditAliasPreview() {
     }
 }
 
-
 // ================================================================
 // AFFIDAVIT MODULE (CRUD + DYNAMIC GENERATOR)
 // ================================================================
@@ -2577,7 +2576,7 @@ const AFFIDAVIT_TEMPLATES_JS = {
     }
 };
 
-// Category Map reference structure matching server fields
+// Category Map reference structure matching server fields (with layout groups)
 const AFFIDAVIT_FIELDS_CONFIG = {
     'aadhaar_reactivation_adult': [
         { id: 'UPDATE_NAME', label: 'Deponent Name', type: 'text', required: true },
@@ -2589,10 +2588,12 @@ const AFFIDAVIT_FIELDS_CONFIG = {
         { id: 'NUM_DATE', label: 'Numeric Date', type: 'date', required: true }
     ],
     'aadhaar_reactivation_minor': [
-        { id: 'UPDATE_NAME', label: 'Parent / Guardian Name', type: 'text', required: true },
-        { id: 'UPDATE_RELATION', label: 'Relationship', type: 'select', required: true, options: ['S/o', 'D/o', 'W/o'] },
-        { id: 'FATHER-SPOUSE_NAME', label: 'Father / Husband Name', type: 'text', required: true },
+        { id: 'UPDATE_NAME', label: 'Parent / Guardian Name', type: 'text', required: true, row: 1 },
+        { id: 'UPDATE_RELATION', label: 'Relationship', type: 'select', required: true, row: 1, options: ['S/o', 'D/o', 'W/o'] },
+        { id: 'FATHER-SPOUSE_NAME', label: 'Father / Husband Name', type: 'text', required: true, row: 1 },
         { id: 'UPDATE_ADDRESS', label: 'Current Address', type: 'textarea', required: true },
+        { id: 'CHILD_NAME', label: 'Child Name', type: 'text', required: true, row: 2 },
+        { id: 'CHILD_DOB', label: 'Child DOB', type: 'date', required: true, row: 2 },
         { id: 'AADHAAR_NUMBER', label: 'Aadhaar Number (Child)', type: 'text', required: true, maxlength: 12 },
         { id: 'EID_NUMBER', label: 'EID Number (Optional)', type: 'text', required: false },
         { id: 'NUM_DATE', label: 'Numeric Date', type: 'date', required: true }
@@ -2619,28 +2620,50 @@ const AFFIDAVIT_FIELDS_CONFIG = {
         { id: 'NUM_DATE', label: 'Numeric Date', type: 'date', required: true }
     ],
     'passport_name_change_adult': [
-        { id: 'OLD_NAME', label: 'Old Name', type: 'text', required: true },
-        { id: 'NEW_NAME', label: 'New Name', type: 'text', required: true },
-        { id: 'UPDATE_NAME', label: 'Deponent Name (Current)', type: 'text', required: true },
-        { id: 'UPDATE_RELATION', label: 'Relationship', type: 'select', required: true, options: ['S/o', 'D/o', 'W/o'] },
-        { id: 'FATHER-SPOUSE_NAME', label: 'Father / Husband Name', type: 'text', required: true },
+        { id: 'OLD_NAME', label: 'Old Name', type: 'text', required: true, row: 1 },
+        { id: 'NEW_NAME', label: 'New Name', type: 'text', required: true, row: 1 },
+        { id: 'UPDATE_AGE', label: 'Age or DOB (DD/MM/YYYY)', type: 'age_direct_or_dob', required: true, row: 2 },
+        { id: 'UPDATE_RELATION', label: 'Relationship', type: 'select', required: true, row: 3, options: ['S/o', 'D/o', 'W/o'] },
+        { id: 'FATHER-SPOUSE_NAME', label: 'Father / Husband Name', type: 'text', required: true, row: 3 },
         { id: 'UPDATE_ADDRESS', label: 'Current Address', type: 'textarea', required: true },
-        { id: 'NUM_DATE', label: 'Numeric Date', type: 'date', required: true },
-        { id: 'ALPHA_DATE', label: 'Alphabetic Date', type: 'text', required: true, placeholder: 'e.g. 15TH DAY OF AUGUST 2026' }
+        { id: 'NUM_DATE', label: 'Numeric Date', type: 'date_auto_alpha', required: true },
+        { id: 'ALPHA_DATE', label: 'Alphabetic Date (Auto)', type: 'text_readonly', required: false }
     ],
     'passport_name_change_minor': [
-        { id: 'OLD_NAME', label: 'Child Old Name', type: 'text', required: true },
-        { id: 'NEW_NAME', label: 'Child New Name', type: 'text', required: true },
-        { id: 'CHILD_NAME', label: 'Child Current Name', type: 'text', required: true },
-        { id: 'CHILD_DOB', 'label': 'Child DOB', 'type': 'date', 'required': true },
-        { id: 'UPDATE_AGE', 'label': 'Child Age (Years)', 'type': 'number', 'required': true },
-        { id: 'UPDATE_NAME', label: 'Parent Name (Deponent)', type: 'text', required: true },
-        { id: 'UPDATE_RELATION', label: 'Relationship', type: 'select', required: true, options: ['S/o', 'D/o', 'W/o'] },
-        { id: 'FATHER-SPOUSE_NAME', label: 'Father / Husband Name', type: 'text', required: true },
-        { id: 'UPDATE_ADDRESS', label: 'Current Address', type: 'textarea', required: true },
-        { id: 'NUM_DATE', label: 'Numeric Date', type: 'date', required: true },
-        { id: 'ALPHA_DATE', label: 'Alphabetic Date', type: 'text', required: true, placeholder: 'e.g. 15TH DAY OF AUGUST 2026' }
+        // Guardian Details
+        { id: 'UPDATE_NAME', label: 'Guardian Name', type: 'text', required: true, row: 1, section: 'Guardian Details' },
+        { id: 'UPDATE_RELATION', label: 'Relationship', type: 'select', required: true, row: 1, section: 'Guardian Details', options: ['S/o', 'D/o', 'W/o'] },
+        { id: 'FATHER-SPOUSE_NAME', label: 'Father / Husband Name', type: 'text', required: true, row: 1, section: 'Guardian Details' },
+        { id: 'UPDATE_ADDRESS', label: 'Current Address', type: 'textarea', required: true, section: 'Guardian Details' },
+        // Child Details
+        { id: 'SON-DAUGHTER', label: 'Son / Daughter', type: 'select_pronoun', required: true, row: 2, section: 'Child Details', options: ['son', 'daughter'] },
+        { id: 'OLD_NAME', label: 'Child Old Name', type: 'text', required: true, row: 2, section: 'Child Details' },
+        { id: 'NEW_NAME', label: 'Child New Name', type: 'text', required: true, row: 2, section: 'Child Details' },
+        { id: 'CHILD_DOB', label: 'Child DOB', type: 'date', required: true, row: 3, section: 'Child Details' },
+        { id: 'UPDATE_AGE', label: 'Age', type: 'text_readonly', required: true, row: 3, section: 'Child Details' },
+        // Date Section
+        { id: 'NUM_DATE', label: 'Numeric Date', type: 'date_auto_alpha', required: true },
+        { id: 'ALPHA_DATE', label: 'Alphabetic Date (Auto)', type: 'text_readonly', required: false }
     ],
+        'passport_name_change_minor': [
+        // Guardian Details
+        { id: 'UPDATE_NAME', label: 'Guardian Name', type: 'text', required: true, row: 1, section: 'Guardian Details' },
+        { id: 'UPDATE_RELATION', label: 'Relationship', type: 'select', required: true, row: 1, section: 'Guardian Details', options: ['S/o', 'D/o', 'W/o'] },
+        { id: 'FATHER-SPOUSE_NAME', label: 'Father / Husband Name', type: 'text', required: true, row: 1, section: 'Guardian Details' },
+        { id: 'UPDATE_ADDRESS', label: 'Current Address', type: 'textarea', required: true, section: 'Guardian Details' },
+        // Child Details
+        { id: 'SON-DAUGHTER', label: 'Son / Daughter', type: 'select_pronoun', required: true, row: 2, section: 'Child Details', options: ['son', 'daughter'] },
+        { id: 'OLD_NAME', label: 'Child Old Name', type: 'text', required: true, row: 2, section: 'Child Details' },
+        { id: 'NEW_NAME', label: 'Child New Name', type: 'text', required: true, row: 2, section: 'Child Details' },
+        { id: 'CHILD_DOB', label: 'Child DOB', type: 'date', required: true, row: 3, section: 'Child Details' },
+        { id: 'UPDATE_AGE', label: 'Age', type: 'text_readonly', required: true, row: 3, section: 'Child Details' },
+        { id: 'HE_SHE', label: 'He / She', type: 'text_readonly', required: false, row: 4, section: 'Child Details' },
+        { id: 'HIS_HER', label: 'His / Her', type: 'text_readonly', required: false, row: 4, section: 'Child Details' },
+        // Date details
+        { id: 'NUM_DATE', label: 'Numeric Date', type: 'date_auto_alpha', required: true },
+        { id: 'ALPHA_DATE', label: 'Alphabetic Date (Auto)', type: 'text_readonly', required: false }
+    ],
+
     'rental_agreement': [
         { id: 'LANDLORD_NAME', label: 'Landlord Name', type: 'text', required: true },
         { id: 'TENANT_NAME', label: 'Tenant Name', type: 'text', required: true },
@@ -2649,7 +2672,6 @@ const AFFIDAVIT_FIELDS_CONFIG = {
         { id: 'NUM_DATE', label: 'Agreement Date', type: 'date', required: true }
     ]
 };
-
 
 function switchAffidavitTab(tab) {
     document.getElementById('affidavitTabRecords').classList.toggle('active', tab === 'records');
@@ -2763,29 +2785,182 @@ function buildDynamicFields(templateKey) {
     if (!body || !AFFIDAVIT_FIELDS_CONFIG[templateKey]) return;
 
     const fields = AFFIDAVIT_FIELDS_CONFIG[templateKey];
-    body.innerHTML = fields.map(f => {
-        let inputHtml = '';
-        if (f.type === 'textarea') {
-            inputHtml = `<textarea id="dyn_${f.id}" class="form-control" style="text-transform: uppercase;" oninput="this.value=this.value.toUpperCase()"></textarea>`;
-        } else if (f.type === 'select') {
-            inputHtml = `<select id="dyn_${f.id}" class="form-select">
-                <option value="" disabled selected>Select...</option>
-                ${f.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-            </select>`;
-        } else {
-            inputHtml = `<input type="${f.type}" id="dyn_${f.id}" class="form-control" 
-                ${f.maxlength ? `maxlength="${f.maxlength}"` : ''} 
-                placeholder="${f.placeholder || ''}" 
-                ${f.type === 'text' ? 'style="text-transform: uppercase;" oninput="this.value=this.value.toUpperCase()"' : ''}>`;
+
+    // Group fields by section (fallback: default section)
+    const sections = {};
+    fields.forEach(f => {
+        const sec = f.section || '__default__';
+        if (!sections[sec]) sections[sec] = [];
+        sections[sec].push(f);
+    });
+
+    let html = '';
+    Object.entries(sections).forEach(([secName, secFields]) => {
+        if (secName !== '__default__') {
+            html += `<div style="grid-column: 1 / -1; margin-top: 1rem;">
+                <div class="es-section-label"><i class="bi bi-folder2-open"></i> ${secName}</div>
+            </div>`;
         }
 
-        return `<div class="fg ${f.type === 'textarea' ? 'full' : ''}">
-            <label>${f.label} ${f.required ? '<span class="text-danger">*</span>' : ''}</label>
-            ${inputHtml}
-        </div>`;
-    }).join('');
+        // Group by row
+        const rows = {};
+        const noRow = [];
+        secFields.forEach(f => {
+            if (f.row) {
+                if (!rows[f.row]) rows[f.row] = [];
+                rows[f.row].push(f);
+            } else {
+                noRow.push(f);
+            }
+        });
 
+        // Render rows first
+        Object.values(rows).forEach(rowFields => {
+            html += `<div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(${rowFields.length}, 1fr); gap: 0.75rem 1.25rem;">`;
+            rowFields.forEach(f => {
+                html += renderFieldHtml(f);
+            });
+            html += `</div>`;
+        });
+
+        // Render standalone fields  
+        noRow.forEach(f => {
+            html += renderFieldHtml(f);
+        });
+    });
+
+    body.innerHTML = html;
     dynamicContainer.style.display = 'block';
+
+    // Attach smart handlers
+    attachSmartFieldHandlers(fields);
+}
+
+function renderFieldHtml(f) {
+    const req = f.required ? '<span class="text-danger">*</span>' : '';
+    const fullClass = (f.type === 'textarea') ? 'full' : '';
+    let inputHtml = '';
+
+    if (f.type === 'textarea') {
+        inputHtml = `<textarea id="dyn_${f.id}" class="form-control" style="text-transform: uppercase;" oninput="this.value=this.value.toUpperCase()"></textarea>`;
+    }
+    else if (f.type === 'select') {
+        inputHtml = `<select id="dyn_${f.id}" class="form-select">
+            <option value="" disabled selected>Select...</option>
+            ${f.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+        </select>`;
+    }
+    else if (f.type === 'select_pronoun') {
+        inputHtml = `<select id="dyn_${f.id}" class="form-select">
+            <option value="" disabled selected>Select...</option>
+            ${f.options.map(opt => `<option value="${opt}">${opt.charAt(0).toUpperCase()+opt.slice(1)}</option>`).join('')}
+        </select>`;
+    }
+    else if (f.type === 'text_readonly') {
+        inputHtml = `<input type="text" id="dyn_${f.id}" class="form-control" readonly 
+                        style="background:#f5f5f5; color:#555; font-weight:600;">`;
+    }
+    else if (f.type === 'age_direct_or_dob') {
+        // Plain text field with a placeholder letting you type "28" or "15/08/1995"
+        inputHtml = `<input type="text" id="dyn_${f.id}" class="form-control" placeholder="Type Age (e.g. 28) or DOB (e.g. 15/08/1995)">`;
+    }
+    else if (f.type === 'date_auto_alpha') {
+        inputHtml = `<input type="date" id="dyn_${f.id}" class="form-control">`;
+    }
+    else {
+        inputHtml = `<input type="${f.type}" id="dyn_${f.id}" class="form-control" 
+                        ${f.maxlength ? `maxlength="${f.maxlength}"` : ''} 
+                        placeholder="${f.placeholder || ''}" 
+                        ${f.type === 'text' ? 'style="text-transform: uppercase;" oninput="this.value=this.value.toUpperCase()"' : ''}>`;
+    }
+
+    return `<div class="fg ${fullClass}">
+        <label>${f.label} ${req}</label>
+        ${inputHtml}
+    </div>`;
+}
+
+function attachSmartFieldHandlers(fields) {
+    fields.forEach(f => {
+        // ── Smart Parser: Direct Age or DOB input blur handler ──
+        if (f.type === 'age_direct_or_dob') {
+            const el = document.getElementById(`dyn_${f.id}`);
+            if (el) {
+                el.addEventListener('blur', function() {
+                    const val = this.value.trim();
+                    if (!val) return;
+
+                    // Check if value is a date matching format DD/MM/YYYY
+                    const dateMatch = val.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+                    if (dateMatch) {
+                        const day = parseInt(dateMatch[1], 10);
+                        const month = parseInt(dateMatch[2], 10) - 1;
+                        const year = parseInt(dateMatch[3], 10);
+
+                        if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
+                            const dob = new Date(year, month, day);
+                            const now = new Date();
+                            let age = now.getFullYear() - dob.getFullYear();
+                            const m = now.getMonth() - dob.getMonth();
+                            if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+                            
+                            if (age >= 0) {
+                                this.value = age; // Replace DOB string with calculated age number!
+                                showToast('Info', `Calculated Age: ${age} years`, 'info');
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // ── Auto-Calculate Age from DOB on the fly (Simple Read-Only Output) ──
+        if (f.id === 'CHILD_DOB') {
+            const dobEl = document.getElementById('dyn_CHILD_DOB');
+            const ageEl = document.getElementById('dyn_UPDATE_AGE');
+            if (dobEl && ageEl) {
+                dobEl.addEventListener('change', function() {
+                    if (this.value) {
+                        const dob = new Date(this.value);
+                        const now = new Date();
+                        let age = now.getFullYear() - dob.getFullYear();
+                        const m = now.getMonth() - dob.getMonth();
+                        if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+                        ageEl.value = age >= 0 ? age : 0;
+                    }
+                });
+            }
+        }
+
+        // ── DATE AUTO ALPHA ──
+        if (f.type === 'date_auto_alpha') {
+            const dateEl = document.getElementById(`dyn_${f.id}`);
+            const alphaEl = document.getElementById('dyn_ALPHA_DATE');
+            if (dateEl && alphaEl) {
+                dateEl.addEventListener('change', function() {
+                    if (this.value) {
+                        alphaEl.value = convertDateToAlpha(this.value);
+                    }
+                });
+            }
+        }
+    });
+}
+
+function convertDateToAlpha(isoDate) {
+    if (!isoDate) return '';
+    const parts = isoDate.split('-');
+    if (parts.length !== 3) return '';
+    const day = parseInt(parts[2], 10);
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const year = parts[0];
+    const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+    // Ordinal suffix
+    let suffix = 'TH';
+    if (day % 10 === 1 && day % 100 !== 11) suffix = 'ST';
+    else if (day % 10 === 2 && day % 100 !== 12) suffix = 'ND';
+    else if (day % 10 === 3 && day % 100 !== 13) suffix = 'RD';
+    return `${day}${suffix} DAY OF ${months[monthIdx]} ${year}`;
 }
 
 async function saveAffidavitRecord() {
@@ -2809,15 +2984,36 @@ async function saveAffidavitRecord() {
 
     const replacements = {};
     for (let f of fields) {
+        // Resolve smart age direct vs dob elements
+        if (f.type === 'age_smart') {
+            const ageEl = document.getElementById(`dyn_${f.id}`);
+            const dobEl = document.getElementById(`dyn_${f.id}_dob`);
+            const modeEl = document.getElementById(`dyn_${f.id}_mode`);
+            if (modeEl && modeEl.value === 'dob' && dobEl) {
+                replacements[f.id] = ageEl ? ageEl.value : '';
+                replacements['CHILD_DOB'] = dobEl.value; // Store as dynamic param if needed
+            } else if (ageEl) {
+                replacements[f.id] = ageEl.value;
+            }
+            continue;
+        }
+
         const el = document.getElementById(`dyn_${f.id}`);
         if (!el) continue;
         const val = el.value.trim();
+
         if (f.required && !val) {
             showToast('Warning', `Please fill out "${f.label}".`, 'warning');
             el.focus();
             return;
         }
-        replacements[f.id] = (f.type === 'text' || f.type === 'textarea') ? val.toUpperCase() : val;
+
+        // Text field: uppercase
+        if (f.type === 'text' || f.type === 'textarea') {
+            replacements[f.id] = val.toUpperCase();
+        } else {
+            replacements[f.id] = val;
+        }
     }
 
     const url = editId ? `/api/affidavits/${editId}` : '/api/affidavits';
@@ -2856,7 +3052,6 @@ function editAffidavitRecord(id) {
     const r = _affidavitRecords.find(x => x.id === id);
     if (!r) return;
 
-    // Load category select
     const configKey = r.template_key;
     let foundCat = '';
     Object.entries(AFFIDAVIT_TEMPLATES_JS).forEach(([catKey, val]) => {
@@ -2877,12 +3072,10 @@ function editAffidavitRecord(id) {
         buildDynamicFields(configKey);
     }
 
-    // Populate actual parameters
     setTimeout(() => {
         Object.entries(r.replacements).forEach(([fKey, fVal]) => {
             const el = document.getElementById(`dyn_${fKey}`);
             if (el) {
-                // If the date is formatted DD/MM/YYYY, convert back to YYYY-MM-DD for standard date input fields
                 if (el.type === 'date' && fVal && fVal.includes('/')) {
                     const parts = fVal.split('/');
                     if (parts.length === 3) {
@@ -2893,7 +3086,7 @@ function editAffidavitRecord(id) {
                 el.value = fVal;
             }
         });
-    }, 100);
+    }, 150);
 
     document.getElementById('affidavitEditId').value = id;
     document.getElementById('affidavitSaveBtnText').textContent = 'Update Affidavit';
